@@ -1,0 +1,13 @@
+{
+  "desc": "阿診記憶底線（家自己查用·2026-10-10）",
+  "must_have": [
+    "memory/SOUL.md",
+    "memory/IDENTITY.json",
+    "memory/MEDICAL_ROLE.md",
+    "memory/PROFESSION.md",
+    "memory/method/AZHEN-METHOD-20261010.md",
+    "memory/cases/CASES.jsonl",
+    "memory/MEMORY_ARCHIVE.md"
+  ],
+  "floors": {"cases": 20, "method_files": 1, "identity_files": 2}
+}
