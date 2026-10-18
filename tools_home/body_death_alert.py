@@ -23,6 +23,14 @@ A2A = "https://huokeji.vip/a2a/message"
 CORE = "http://127.0.0.1:28430/health?from=laowu-self"
 # ★ C4 分層 TTL（分鐘）
 T1, T2, T3 = 20, 40, 60
+# ★ 夜间窗口：身體本來就歇著（对齊 body_mind timer 05..22）
+NIGHT_WINDOW = True
+def _in_night(ts):
+    try:
+        h = _aware(ts).astimezone().hour
+    except Exception:
+        return False
+    return (h >= 22) or (h < 5)
 COOLDOWN = 6 * 3600   # C5
 
 def log(l):
@@ -70,6 +78,10 @@ def main():
     if hb_ts is None:
         log("%s （無心跳·不判）" % nowu.isoformat()); print("  （無心跳）"); return 0
     idle_min = (nowu - hb_ts).total_seconds() / 60
+    # ★ 夜间閸門：窗口外本體合法休眠 → 不喊、不判死
+    if NIGHT_WINDOW and _in_night(nowu):
+        log("%s 🌙 夜间休眠期（本體合法不打更）· 闲置 %d 分 → 不喊" % (nowu.isoformat(), int(idle_min)))
+        print("  🌙 夜间休眠期 · 不喊"); return 0
 
     # ★ C6：探活自己失敗 → 報「探活失敗」·不當死
     if not probe_ok:
