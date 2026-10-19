@@ -137,6 +137,8 @@ def watch_video(path, question="看看这个视频·说画面变化", frames=4):
 def hear_audio(path):
     """听音频: faster-whisper 转录"""
     try:
+        import sys as _s
+        _s.path.insert(0, "/opt/masterd-wudi/venv-whisper/lib/python3.12/site-packages")
         from faster_whisper import WhisperModel
         model = WhisperModel("small", device="cpu", compute_type="int8")
         segs, info = model.transcribe(path, language="zh")
