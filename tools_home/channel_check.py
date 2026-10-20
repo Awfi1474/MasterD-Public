@@ -81,6 +81,7 @@ def probe2(url, headers=None, timeout=15):
     """★ 治「抖动误报」：一次失败 ≠ 真断。
        ★ 判据（新）：C20 「一次失败 != 断｜先重探一次·再断才算断」
     """
+    import time as _t
     code, body, err, ms = probe(url, headers, timeout)
     if code == 200:
         return code, body, err, ms
