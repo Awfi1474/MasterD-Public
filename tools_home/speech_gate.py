@@ -35,8 +35,27 @@ EMPTY = ["可能吧", "也许", "大概", "应该是", "我觉得还行", "应�
 def ts():
     return datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).strftime("%Y-%m-%dT%H:%M:%S+08:00")
 
+def load_tpl():
+    """★ 从 COGNITION-TEMPLATE.yaml 读规则·不读硬编码（2026-10-24 老五）"""
+    try:
+        import yaml
+        d = yaml.safe_load(open('/opt/masterd-wudi/memory/COGNITION-TEMPLATE.yaml', encoding='utf-8'))
+        return d
+    except Exception as e:
+        print('  ⚠️ 模板读不到(%s)·退回硬编码' % e)
+        return None
+
 def check(text):
     t = str(text)
+    _tpl = load_tpl()
+    # ★ 宪法层硬拦（从模板读·不是硬编码）
+    _hard = []
+    if _tpl:
+        for c in _tpl.get('constitution', []):
+            if c.get('enforce') == 'hard_block':
+                _hard.append(c.get('rule',''))
+        # 风格层从模板读
+        _style = _tpl.get('style',{}).get('speaking',[])
     n_ok = 0
     issues = []
     # ★ 三问
