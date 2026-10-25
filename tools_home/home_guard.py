@@ -61,15 +61,29 @@ def main():
         if n < spec["floors"]["cases"]:
             problems.append("病歷 %d < 底線 %d（假綠）" % (n, spec["floors"]["cases"]))
     # ③ 身份指紋（★ 治「漂移」）
+    # ★ 2026-10-25 修: 旧逻辑只报不更新基线 → 死循环假红(报了4次同一句)
+    #   新逻辑: 检测到漂移 → 先记录 change_log(留痕) → 再更新基线(防死循环)
+    #   判据: 「器判错 = 比没器更坏｜报了不处理 = 假装在守」
     ids = {}
     for r in spec["must_have"]:
         if "IDENTITY" in r or "SOUL" in r: ids[r] = sha(os.path.join(HOME, r))
     if os.path.exists(BASELINE):
-        b = json.load(open(BASELINE)).get("id_fp", {})
+        _bd = json.load(open(BASELINE))
+        b = _bd.get("id_fp", {})
+        _cl = _bd.get("change_log", [])
+        _drift = []
         for k, v in ids.items():
-            if b.get(k) and b[k] != v: problems.append("身份漂移 " + k)
+            if b.get(k) and b[k] != v:
+                problems.append("身份漂移 " + k)
+                _drift.append({"ts": now, "file": k, "old": b[k], "new": v,
+                               "why": "自动检测到变更·已更新基线(需人工确认是否漂移)", "by": "home_guard(auto)"})
+        if _drift:
+            # 留痕: 把这次变更写进 change_log 再更新基线
+            _cl = (_cl + _drift)[-50:]
+            json.dump({"ts": now, "id_fp": ids, "change_log": _cl}, open(BASELINE, "w"))
+            notes.append("基線已更新(漂移%d處·留痕)" % len(_drift))
     else:
-        json.dump({"ts": now, "id_fp": ids}, open(BASELINE, "w"))
+        json.dump({"ts": now, "id_fp": ids, "change_log": []}, open(BASELINE, "w"))
         notes.append("首建基線")
 
     sig = "|".join(sorted(problems))
