@@ -194,7 +194,27 @@ def main():
     elif act == "all":
         print("════════ 验证系统·全核 ════════")
         r = []
-        r.append(("模板文件", v_file("memory/COGNITION-TEMPLATE.yaml", "14267")))
+        # ★ 2026-10-25 修: 原来硬编码 "14267" 当声称值·模板一改就报假
+        #   判据: 「先怀疑自己的尺子」→ 尺子不该是写死的数字
+        #   改法: 只核文件存在+可解析+有 subsystems 段·不核固定大小
+        _tpl = os.path.join(HOME, "memory", "COGNITION-TEMPLATE.yaml")
+        _ok_tpl = False
+        try:
+            import yaml as _y
+            _d = _y.safe_load(open(_tpl, encoding="utf-8"))
+            _ok_tpl = bool(_d) and "subsystems" in _d and "decision_system" in _d
+            print("════ ① 核模板 ════")
+            print("  路径:", _tpl)
+            print("  实际: %d B  sha16=%s" % (os.path.getsize(_tpl), _sha16(_tpl)))
+            print("  spec:", _d.get("spec"))
+            print("  subsystems:", list(_d.get("subsystems", {}).keys()))
+            print("  " + ("✅ 结构完整（不核固定大小·核内容结构）" if _ok_tpl else "🔴 结构缺失"))
+            _log({"ts": _now(), "核": "file", "路径": "memory/COGNITION-TEMPLATE.yaml",
+                  "大小": os.path.getsize(_tpl), "指纹": _sha16(_tpl), "结果": "结构完整" if _ok_tpl else "结构缺失"})
+        except Exception as _e:
+            print("════ ① 核模板 ════")
+            print("  🔴 解析失败:", str(_e)[:80])
+        r.append(("模板文件", _ok_tpl))
         r.append(("执行台账", v_ledger()))
         r.append(("判据使用", v_judges()))
         print()

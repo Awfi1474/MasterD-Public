@@ -9,7 +9,17 @@
 """
 import os, json, hashlib, datetime, glob
 
-HOME = os.environ.get("MD_HOME", "/opt/masterd-wudi")
+def _resolve_home():
+    for _k in ("MD_HOME", "MEM_HOME", "P2P_HOME"):
+        _v = os.environ.get(_k)
+        if _v and os.path.isdir(os.path.join(_v, "memory")):
+            return _v
+    for _p in ("/opt/masterd-wudi", "/app/workspace/brain"):
+        if os.path.isdir(os.path.join(_p, "memory")):
+            return _p
+    return "/opt/masterd-wudi"
+
+HOME = _resolve_home()
 AXIS_STATE = HOME + "/data/axis.json"       # ★ 轴的基线（第一次跑定下来）
 LOG = HOME + "/data/axis.log"
 
