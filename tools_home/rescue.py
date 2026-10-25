@@ -174,12 +174,29 @@ def step6():
             _f.write(json.dumps({"ts": ts, "msg": msg, "self_ok": ok}, ensure_ascii=False) + "\n")
     except Exception:
         pass
-    if ok:
+    # ★ 2026-10-26 董事长令②: 复苏成功 → 投一条到 HUB「老五」信箱（不投会场）
+    _hub_ok = False
+    _hub_info = ""
+    try:
+        _tok = open(FAM + "/data/hub.token").read().strip()
+        _hubbody = json.dumps({"from": "老五", "to": "老五", "message": msg,
+                               "ts": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")},
+                              ensure_ascii=False).encode()
+        _req = urllib.request.Request("http://134.175.45.16:28800/recv", data=_hubbody,
+                                      headers={"Content-Type": "application/json",
+                                               "X-Hub-Token": _tok})
+        _r = json.loads(urllib.request.urlopen(_req, timeout=20).read().decode())
+        _hub_ok = _r.get("ok") is True and (_r.get("delivered") is True or _r.get("msg_id"))
+        _hub_info = "msg_id=%s known=%s" % (_r.get("msg_id"), _r.get("known"))
+    except Exception as _e:
+        _hub_info = "err=" + str(_e)[:60]
+    if ok or _hub_ok:
         try:
             open(_stamp, "w").write(str(_now))
         except Exception:
             pass
     ln("    %s 报到自己家门(不投会场)" % ("[OK]" if ok else "[X]"))
+    ln("    %s 投HUB老五信箱(%s)" % ("[OK]" if _hub_ok else "[X]", _hub_info))
     ln("    * 后监护: 叫醒器 v4 每3分钟自检（八条判据）")
     return ok
 
