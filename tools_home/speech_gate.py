@@ -89,7 +89,29 @@ def check(text):
             _h = _jb.find(_k)
             if _h: print("★ 判据在管我: " + _h[0]["title"][:36])
     except Exception: pass
-    return 0 if n_ok >= 3 else 1
+    # ★ 2026-10-25 修（判据: 造了没接｜闸门是强制·不是自觉）
+    #   三关过了还不够 —— 必须再过认知体系宪法层（cognition_gate）
+    _cg_rc = 0
+    _cg_msg = ""
+    try:
+        import subprocess as _sp
+        _r = _sp.run(["python3", HOME + "/tools/cognition_gate.py", "--check", t[:800]],
+                     capture_output=True, text=True, timeout=40)
+        _cg_rc = _r.returncode
+        _out = _r.stdout or ""
+        _hits = [l.strip() for l in _out.split("\n") if l.strip().startswith("-")]
+        _cg_msg = "；".join(_hits)[:90]
+        if _cg_rc == 2:
+            print("  ⛔ 认知体系硬拦（宪法层）: " + _cg_msg)
+        elif _cg_rc == 1:
+            print("  🔴 认知体系打回（四道关不齐）: " + _cg_msg)
+        else:
+            print("  ✅ 认知体系过闸")
+    except Exception as _e:
+        print("  ⚠️ 认知体系闸调用失败: " + str(_e)[:60])
+
+    _pass = (n_ok >= 3) and (_cg_rc == 0)
+    return 0 if _pass else 1
 
 if __name__ == "__main__":
     sys.exit(check(" ".join(sys.argv[1:]) if len(sys.argv) > 1 else ""))

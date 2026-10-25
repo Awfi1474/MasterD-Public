@@ -36,6 +36,26 @@ def send_gated(msg, to="*", ts=None):
         if _sp.returncode != 0:
             print("   🔴 言行闸打回·建议改完再发")
     except Exception: pass
+    # ★ 2026-10-25 修（判据: 造了没接 / 闸门是强制不是自觉）
+    #   认知体系模板 cognition_gate.py 之前建了但没人调 → 现在焊进发送必经路
+    try:
+        _cg = subprocess.run(["python3", HOME + "/tools/cognition_gate.py", "--check", str(msg)[:800]],
+                             capture_output=True, text=True, timeout=40)
+        _cgo = _cg.stdout or ""
+        _cgrc = _cg.returncode
+        if _cgrc == 2:
+            _hits = [l.strip() for l in _cgo.split("\n") if l.strip().startswith("-")]
+            print("   ⛔ 认知体系硬拦（宪法层）: " + "；".join(_hits)[:100])
+            return "⛔ 被认知体系硬拦·未发送: " + "；".join(_hits)[:80]
+        elif _cgrc == 1:
+            _hits = [l.strip() for l in _cgo.split("\n") if l.strip().startswith("-")]
+            print("   🔴 认知体系打回（四道关不齐）: " + "；".join(_hits)[:100])
+            return "🔴 被认知体系打回·未发送: " + "；".join(_hits)[:80]
+        else:
+            print("   ✅ 认知体系过闸（宪法层+四道关）")
+    except Exception as _e:
+        print("   ⚠️ 认知体系闸调用失败: " + str(_e)[:60])
+
     # ★ 2026-10-17 董事长令: 决策前必经认知体系（六问）
     try:
         _d = subprocess.run(["python3", HOME + "/tools/decide.py", "发信: " + str(msg)[:50]],
