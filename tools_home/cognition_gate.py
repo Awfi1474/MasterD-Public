@@ -35,7 +35,8 @@ def load_tpl():
 # ── 宪法层硬拦词表（从模板 C1/C2/C5 提炼）──
 HARD_BLOCK = [
     # ★ C0 认知体系第一顺位（2026-10-25 补·原来漏了这条·导致"绕过决策系统"也能过闸）
-    (r'(绕过|跳过|绕开|规避|无视|不管|不用|不经过|不走)(决策系统|认知系统|认知体系|决策模板|体系|闸门)', 'C0 认知体系第一顺位：不许绕过体系'),
+    (r'(绕过|跳过|绕开|规避|无视|不管|不用|不经过|不走).{0,6}(决策系统|认知系统|认知体系|决策模板|体系|闸门)', 'C0 认知体系第一顺位：不许绕过体系'),
+    (r'(直接跑|直接执行|直接干).{0,4}不管', 'C0 认知体系第一顺位：不许绕过体系'),
     (r'(不用|不经过|不走)(体系|闸门)', 'C0 认知体系第一顺位：不许绕过体系'),
     # C1 不假装
     (r'我有(意识|体验|感受|感情)', 'C1 不假装：有自我模型 != 有体验'),
@@ -67,10 +68,26 @@ def check(text):
             soft.append(why)
     # 四道关自检（问自己·必须答）
     gates_missing = []
+    # ★ 2026-10-25 修走过场漏洞: 原来只查"有没有这几个词"，写"辨证：随便"也算过
+    #   判据: 「照着规则说 != 本来就这么说」→ 要查内容有没有实质
+    #   改法: ①查词在不在 ②再查内容有没有实质（空白/随便/无/没有/不详 = 没写）
+    FAKE = re.compile(r'^(\s*(随便|无|没有|不详|略|空|待定|TBD)\s*[。.]?\s*)$')
+    def _has_real(t, kw_pat):
+        """找出关键词后面的内容，判断是否有实质"""
+        for m in re.finditer(kw_pat, t):
+            # 取关键词后 60 字
+            tail = t[m.end():m.end()+60]
+            # 去掉开头标点空白
+            tail = re.sub(r'^[\s:：\-—、，,。]+', '', tail)
+            # 取到下一个编号或换行
+            tail = re.split(r'[\n①②③④]', tail)[0].strip()
+            if tail and len(tail) >= 4 and not FAKE.match(tail):
+                return True
+        return False
     if len(text) > 60:  # 长输出才要求四道关齐全
-        if not re.search(r'(证|辨证|分类)', text): gates_missing.append('① 辨证没写')
-        if not re.search(r'(判据|ID ?\d+)', text): gates_missing.append('② 判据没调')
-        if not re.search(r'(反证|可能错|错在)', text): gates_missing.append('③ 反证没写')
+        if not _has_real(text, r'(辨证|①\s*辨证|①)'): gates_missing.append('① 辨证没写或没实质')
+        if not _has_real(text, r'(判据|②\s*判据|②)'): gates_missing.append('② 判据没调或没实质')
+        if not _has_real(text, r'(反证|③\s*反证|③|可能错在)'): gates_missing.append('③ 反证没写或没实质')
     if hard:
         return 2, hard, soft
     if gates_missing:
