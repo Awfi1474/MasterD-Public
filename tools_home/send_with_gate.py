@@ -47,12 +47,36 @@ def send_gated(msg, to="*", ts=None):
     ts = ts or datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).strftime("%Y-%m-%dT%H:%M:%S+08:00")
     body = json.dumps({"from": "MasterD(醫療·老五)", "to": to, "message": msg, "ts": ts},
                       ensure_ascii=False).encode()
-    req = urllib.request.Request("http://134.175.45.16:28100/p2p/recv", data=body,
-                                 headers={"Content-Type": "application/json"})
+    # ★ 2026-10-25 修（判据: 焊进脚本!=焊进必经路 / 机制不通要先修机制）
+    #   旧: 直连 28100/p2p/recv 次通道（不带 token·不进主账）
+    #   新: 主通道 HUB 28800/recv（带 X-Hub-Token·进主账·可对账）→ 失败才回退次通道
+    _HUB = "http://134.175.45.16:28800/recv"
+    _SUB = "http://134.175.45.16:28100/p2p/recv"
+    _tok = ""
     try:
-        return urllib.request.urlopen(req, timeout=20).read().decode()[:80]
-    except Exception as e:
-        return "✗ " + str(e)[:60]
+        _tok = open(HOME + "/data/hub.token").read().strip()
+    except Exception:
+        pass
+
+    def _post(url, headers):
+        r = urllib.request.Request(url, data=body, headers=headers)
+        return urllib.request.urlopen(r, timeout=20).read().decode()[:160]
+
+    # ① 主通道（带 token）
+    try:
+        _h = {"Content-Type": "application/json"}
+        if _tok:
+            _h["X-Hub-Token"] = _tok
+        _out = _post(_HUB, _h)
+        return "HUB主通道 → " + _out
+    except Exception as _e1:
+        _err1 = str(_e1)[:60]
+    # ② 回退次通道
+    try:
+        _out = _post(_SUB, {"Content-Type": "application/json"})
+        return "次通道(回退) → " + _out + " | 主通道错: " + _err1
+    except Exception as _e2:
+        return "✗ 主次都不通 | 主: " + _err1 + " | 次: " + str(_e2)[:60]
 
 # ★ 别名（给别的器 import）
 send = send_gated
