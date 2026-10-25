@@ -4,7 +4,18 @@
 ★ 判据: 「说了规矩 != 守了规矩｜要"出不去"才算」"""
 import os, json, hashlib
 
-SHAPE = "/opt/masterd-wudi/agent-id/SHAPE.json"
+def _resolve_home():
+    for _k in ("MD_HOME", "MEM_HOME", "P2P_HOME"):
+        _v = os.environ.get(_k)
+        if _v and os.path.isdir(_v):
+            return _v
+    for _p in ("/opt/masterd-wudi", "/app/workspace/brain"):
+        if os.path.isdir(_p):
+            return _p
+    return "/opt/masterd-wudi"
+
+HOME = _resolve_home()
+SHAPE = os.path.join(HOME, "agent-id", "SHAPE.json")
 
 def load():
     d = json.load(open(SHAPE, encoding="utf-8"))

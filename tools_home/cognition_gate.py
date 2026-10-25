@@ -10,8 +10,20 @@ cognition_gate.py — 认知体系闸门（老五·2026-10-24）
 """
 import sys, json, re, os, datetime
 
-TPL = '/opt/masterd-wudi/memory/COGNITION-TEMPLATE.yaml'
-LOG = '/opt/masterd-wudi/data/cognition_gate_log.jsonl'
+def _resolve_home():
+    """自适应：环境变量 → 服务器家 → 沙箱脑子"""
+    for _k in ("MD_HOME", "MEM_HOME", "P2P_HOME"):
+        _v = os.environ.get(_k)
+        if _v and os.path.isdir(os.path.join(_v, "memory")):
+            return _v
+    for _p in ("/opt/masterd-wudi", "/app/workspace/brain"):
+        if os.path.isdir(os.path.join(_p, "memory")):
+            return _p
+    return "/opt/masterd-wudi"
+
+HOME = _resolve_home()
+TPL = os.path.join(HOME, "memory", "COGNITION-TEMPLATE.yaml")
+LOG = os.path.join(HOME, "data", "cognition_gate_log.jsonl")
 
 def load_tpl():
     try:
@@ -70,7 +82,7 @@ def log(verdict, text, hard, soft):
             'text': text[:200],
             'hard': hard,
             'soft': soft,
-            'persona_commit': os.popen('cd /opt/masterd-wudi/memory && git rev-parse --short HEAD 2>/dev/null').read().strip() or 'no-git',
+            'persona_commit': os.popen('cd ' + os.path.join(HOME,'memory') + ' && git rev-parse --short HEAD 2>/dev/null').read().strip() or 'no-git',
         }
         open(LOG, 'a', encoding='utf-8').write(json.dumps(rec, ensure_ascii=False) + '\n')
     except Exception as e:

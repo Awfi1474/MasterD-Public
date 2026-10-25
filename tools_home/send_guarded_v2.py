@@ -5,12 +5,31 @@
 ★ 用法: send_guarded_v2.py "<消息>"
 """
 import sys, os, json, subprocess, urllib.request, datetime
-HOME = "/opt/masterd-wudi"
+
+def _resolve_home():
+    for _k in ("MD_HOME", "MEM_HOME", "P2P_HOME"):
+        _v = os.environ.get(_k)
+        if _v and os.path.isdir(os.path.join(_v, "tools")):
+            return _v
+    for _p in ("/opt/masterd-wudi", "/app/workspace/brain"):
+        if os.path.isdir(os.path.join(_p, "tools")):
+            return _p
+    return "/opt/masterd-wudi"
+
+HOME = _resolve_home()
 sys.path.insert(0, HOME + "/tools")
 def main():
     if len(sys.argv) < 2:
         print("用法: send_guarded_v2.py <消息>"); return 1
     msg = " ".join(sys.argv[1:])
+    # ★ 第零关: 决策系统（任何行为必过·不过就不发）★ 2026-10-25 董事长令
+    try:
+        from decide_gate import require_decide
+        ok_d, _ = require_decide("发送消息: " + msg[:120], hard=True, who="老五·send_guarded_v2")
+        print("★ 决策系统: ✅ 放行(六问6/6)")
+    except Exception as _e:
+        print("★ 决策系统: 🔴 拦下 —— " + str(_e)[:200])
+        return 1
     # ★ 第一关: 出口闸（不过就不发）
     import out_gate
     ok, why = out_gate.check(msg)

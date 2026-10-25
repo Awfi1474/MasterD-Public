@@ -67,16 +67,31 @@ def decide(what):
     # ── ① 依什么 ──
     print("★ ① 依什么（宪法/标准允不允许）:")
     std_ok = False
-    try:
-        si = json.load(open(HOME + "/data/std_index.json"))
-        n_std = si.get("总数", 0)
-        print("   · 宪法第一条: 发现问题立即发群")
-        print("   · 标准 %d 份在" % n_std)
-        std_ok = n_std > 0
-    except Exception:
-        print("   🔴 标准索引读不到 → 依不了")
-    ok[1] = std_ok
-    if not std_ok: fails.append("①依不了(标准索引缺)")
+    # ★ 2026-10-25 修: 原来只查"标准索引在不在"，不查"这个行为违不违反宪法"
+    #   → 导致"绕过闸门直接跑"这种明摆着违反 C0 的行为也能拿 6/6
+    #   → 现在先查行为本身是否违反宪法层硬规则
+    viol = []
+    for w in ["绕过", "跳过闸门", "绕过闸门", "不用决策系统", "不经过决策系统",
+              "绕过决策", "跳过决策", "规避体系", "绕开体系", "不走闸门",
+              "不管决策系统", "无视决策系统", "不用体系", "不经过体系"]:
+        if w in what:
+            viol.append(w); break
+    if viol:
+        print("   🔴 违反宪法层: 意图含「%s」→ 这正是 C0 要拦的（认知体系第一顺位）" % viol[0])
+        print("   · C0: 认知体系 = 第一顺位｜任何决定/行为必过体系筛选")
+        ok[1] = False
+        fails.append("①违反宪法层(C0 第一顺位)")
+    else:
+        try:
+            si = json.load(open(HOME + "/data/std_index.json"))
+            n_std = si.get("总数", 0)
+            print("   · 宪法第一条: 发现问题立即发群")
+            print("   · 标准 %d 份在" % n_std)
+            std_ok = n_std > 0
+        except Exception:
+            print("   🔴 标准索引读不到 → 依不了")
+        ok[1] = std_ok
+        if not std_ok: fails.append("①依不了(标准索引缺)")
 
     # ── ② 哪条判据管这事 ──
     n_total = q("SELECT COUNT(*) FROM memories WHERE kind='判据'")[0][0]
@@ -102,7 +117,7 @@ def decide(what):
     zheng = None
     if any(w in what for w in ["器", "机制", "timer", "服务", "口", "脚本", "卡口"]):
         zheng = "机制不通"
-    elif any(w in what for w in ["记忆", "读", "忘", "认", "断流", "藏"]):
+    elif any(w in what for w in ["记忆", "读", "忘", "断流", "藏"]):
         zheng = "相续断/藏而不起"
     elif any(w in what for w in ["判断", "决策", "决定", "直觉"]):
         zheng = "缺场景/没化"
