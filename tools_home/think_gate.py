@@ -69,9 +69,24 @@ def gate(kind):
             _h = _jb.find(_k)
             if _h: print("★ 判据在管我: " + _h[0]["title"][:36])
     except Exception: pass
-    # ★ 2026-10-17: 提醒"决策前要过认知体系（六问）"
-    print("  ★ ★ 决策前·记得过认知体系: python3 decide.py \"<你的决定>\"（六问）")
-    print("  ★ 共 " + str(n) + " 条（★ 不是'提醒我记得'·是'动之前自动跳出来'）")
+    # ★ 2026-10-25 董事长令: 任何决定都要过认知体系（筛选+纠正）—— 从"提醒"改成"硬卡"
+    # ★ 判据: 「有体系 != 言行都过体系｜漏一条 = 那条不是我」
+    # ★ 判据: 「决定之前没过体系 = 凭直觉｜凭直觉 = 思维没提升」
+    _what = " ".join(sys.argv[2:]).strip()
+    if kind in ("edit", "claim", "money", "send") and _what:
+        try:
+            sys.path.insert(0, HOME + "/tools")
+            from decide_gate import require_decide
+            _ok, _out = require_decide(_what, hard=True)
+            print("  ★ 认知体系: " + ("✅ 过(六问齐)" if _ok else "🔴 打回"))
+        except Exception as _e:
+            print("  🔴 认知体系没过·不许动: " + str(_e)[:120])
+            print("  ★ 共 " + str(n) + " 条")
+            return 1
+    else:
+        print("  ★ 认知体系: 未给决定内容 → 只提醒(不卡)")
+        print("  ★ ★ 决策前·必须过: python3 decide_gate.py \"<你的决定>\"")
+    print("  ★ 共 " + str(n) + " 条（★ 不是'提醒我记得'·是'动之前卡住我'）")
     return 0
 
 
