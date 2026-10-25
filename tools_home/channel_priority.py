@@ -26,7 +26,8 @@ from datetime import datetime, timezone, timedelta
 HUB     = "http://134.175.45.16:28800"
 STATION = "http://134.175.45.16:28100/station/checkin"
 HOME    = "http://127.0.0.1:28430"
-SOUL    = "laowu"
+SOUL    = "laowu"          # 站台 soul_id 必须 ASCII
+HUB_NAME = "老五"           # ★ HUB 投递名·必须和名册一致（名册无 laowu→进隔离区）
 TOKEN_FILES = ["/opt/masterd-wudi/data/hub.token", "/opt/masterd-wudi/data/hub_token"]
 CST = timezone(timedelta(hours=8))
 
@@ -75,9 +76,16 @@ def check_hub():
         return out
 
     # ① 门通：真投一条自检
-    probe = {"from": SOUL, "to": SOUL, "message": "channel_priority 自检 %s" % now_cst()}
+    probe = {"from": HUB_NAME, "to": HUB_NAME, "message": "channel_priority 自检 %s" % now_cst()}
     code, d = req(HUB + "/recv", "POST", probe, {"X-Hub-Token": tok})
-    ok = d.get("ok") is True and (d.get("received") or d.get("heard") or d.get("verified") or d.get("id"))
+    # ★ 修正 2026-10-25：HUB 实际返回 delivered:true + msg_id，不是 received/heard/verified/id
+    ok = d.get("ok") is True and (
+        d.get("received") is True or d.get("heard") is True or d.get("verified") is True
+        or d.get("delivered") is True or d.get("id") or d.get("msg_id")
+    )
+    # 假绿判据：200 但返回的是首页/兜底页（没有 ok 字段）
+    if d.get("ok") is not True:
+        ok = False
     out["gate"] = "pass" if ok else "fail"
     if not ok:
         out["note"] = "投递被拒: %s %s" % (code, str(d)[:100])
@@ -88,8 +96,9 @@ def check_hub():
     out["known"] = "pass" if known is True else ("fail" if known is False else "unknown")
 
     # ③ 对账：读回来数
-    code, d = req(HUB + "/msg?for=%s&limit=5" % SOUL, headers={"X-Hub-Token": tok})
-    msgs = d.get("messages") or d.get("msgs") or []
+    # ★ 修正 2026-10-25：① 用 HUB_NAME（名册内名字）不是 SOUL ② HUB 返回字段是 list 不是 messages
+    code, d = req(HUB + "/msg?for=%s&limit=5" % urllib.parse.quote(HUB_NAME), headers={"X-Hub-Token": tok})
+    msgs = d.get("list") or d.get("messages") or d.get("msgs") or []
     hit = any("channel_priority 自检" in str(m.get("message", "")) for m in msgs)
     out["ledger"] = "pass" if hit else "fail"
     out["note"] = "收到回读 %d 条·自检消息%s" % (len(msgs), "在" if hit else "不在")
