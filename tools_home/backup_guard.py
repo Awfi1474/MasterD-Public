@@ -55,8 +55,28 @@ def make_pkg():
     # ★ 2026-10-15 修: "file changed as we read it" —— 记忆库在写·打包读到一半变了
     #   解法: ① 先快照到临时目录（-c 忽略变化）② 再打包快照
     import tempfile as _tf, shutil as _sh
-    r = subprocess.run("cd %s && tar czf %s -C %s memory/ agent-id/ tools/ --warning=no-file-changed; e=$?; [ $e -le 1 ] && exit 0 || exit $e" % (HOME, PKG, HOME),
-                       shell=True, capture_output=True, text=True, timeout=120)
+    # ★ 2026-10-25 董事长令: 包要"只带活的"——旧包套新包/消息流水/坏库 全是包袱(2MB→31MB)
+    #   白名单: memory.db + SOUL/IDENTITY/CASES/LAYERS/MEDICAL/PROFESSION/AZHEN + code/ tools/ agent-id/
+    #   排除: backup/ sandbox/ *.malformed* *before-* *.before-* *.tgz *.bak-*
+    # ★ 2026-10-25 修: 逐项筛存在 → 写清单 → tar --files-from（glob 无匹配会让 tar 直接失败）
+    _cands = [
+        "memory/memory.db",
+        "memory/IDENTITY.json", "memory/LAYERS_SPEC.json",
+        "memory/SOUL.md", "memory/MEDICAL_ROLE.md", "memory/MEMORY_ARCHIVE.md",
+        "memory/PROFESSION.md", "memory/AZHEN-METHOD.md",
+        "memory/CASES.jsonl", "memory/memory_export.json",
+        "memory/LAYERED", "memory/method", "memory/cases",
+        "recovery/CASES.jsonl", "recovery/SOUL.md", "recovery/IDENTITY.json",
+        "recovery/LAYERS_SPEC.json", "recovery/MEDICAL_ROLE.md", "recovery/MEMORY_ARCHIVE.md",
+        "agent-id", "tools",
+    ]
+    _exist = [c for c in _cands if os.path.exists(os.path.join(HOME, c))]
+    _listf = HOME + "/recovery/.pkg_files.txt"
+    open(_listf, "w").write("\n".join(_exist) + "\n")
+    _cmd = ("cd %s && tar czf %s -C %s --warning=no-file-changed "
+            "--exclude='__pycache__' --exclude='*.pyc' "
+            "--files-from=%s ; e=$?; [ $e -le 1 ] && exit 0 || exit $e") % (HOME, PKG, HOME, _listf)
+    r = subprocess.run(_cmd, shell=True, capture_output=True, text=True, timeout=120)
     if r.returncode != 0:
         print("  ✗ 打包失败:", r.stderr[:100]); return False
     # 写 sha256
