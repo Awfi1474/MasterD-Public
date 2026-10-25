@@ -160,14 +160,26 @@ def step6():
     if _now - _last < 3600:
         ln("    [SKIP] 距上次报到 %.0f 分钟·不重复报(防刷屏)" % ((_now - _last) / 60))
         return True
-    body = json.dumps({"q": msg, "raised_by": "老五", "kind": "复苏·报到"}, ensure_ascii=False).encode()
-    ok = not isinstance(get(ROOM, 20, data=body), Exception)
+    # ★ 2026-10-25 董事长令: 「不要发群里面·可以对着自己·但不要刷群」
+    # 判据: 「报到 != 播报｜内务不投会场｜会场只放"需要全员知道"的」
+    # 改: 报到投自己家门(对自己说) + 写本地账，不投会场
+    _self = "http://127.0.0.1:28430/recv_open"
+    body = json.dumps({"from": "老五", "message": msg,
+                       "ts": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")},
+                      ensure_ascii=False).encode()
+    ok = not isinstance(get(_self, 20, data=body), Exception)
+    # 本地账留痕
+    try:
+        with open("/opt/masterd-wudi/data/rescue_report.jsonl", "a", encoding="utf-8") as _f:
+            _f.write(json.dumps({"ts": ts, "msg": msg, "self_ok": ok}, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
     if ok:
         try:
             open(_stamp, "w").write(str(_now))
         except Exception:
             pass
-    ln("    %s 报到会场" % ("[OK]" if ok else "[X]"))
+    ln("    %s 报到自己家门(不投会场)" % ("[OK]" if ok else "[X]"))
     ln("    * 后监护: 叫醒器 v4 每3分钟自检（八条判据）")
     return ok
 
