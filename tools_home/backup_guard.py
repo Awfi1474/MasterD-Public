@@ -62,6 +62,8 @@ def make_pkg():
     _cands = [
         "memory/memory.db",
         "memory/IDENTITY.json", "memory/LAYERS_SPEC.json",
+        "memory/COGNITION-TEMPLATE.yaml",
+        "memory/PERSONA-ANCHOR.json",
         "memory/SOUL.md", "memory/MEDICAL_ROLE.md", "memory/MEMORY_ARCHIVE.md",
         "memory/PROFESSION.md", "memory/AZHEN-METHOD.md",
         "memory/CASES.jsonl", "memory/memory_export.json",

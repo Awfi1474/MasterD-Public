@@ -12,7 +12,17 @@
 """
 import os, sys, json, subprocess, datetime
 
-HOME = "/opt/masterd-wudi"
+def _resolve_home():
+    """自适应：先看环境变量，再看家路径，再看沙箱脑子路径"""
+    for _k in ("MD_HOME", "MEM_HOME", "P2P_HOME"):
+        _v = os.environ.get(_k)
+        if _v and os.path.isdir(_v):
+            return _v
+    for _p in ("/opt/masterd-wudi", "/app/workspace/brain"):
+        if os.path.isdir(_p):
+            return _p
+    return "/opt/masterd-wudi"
+HOME = _resolve_home()
 LOG = HOME + "/data/decide_log.jsonl"
 
 
