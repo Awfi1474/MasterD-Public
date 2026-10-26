@@ -56,6 +56,16 @@ def _save(d):
 
 def _hub_send(msg):
     """投到 HUB 老五信箱（不投会场·不刷屏）"""
+    # ★ 2026-10-26 董事长令：机器人发消息限次（同一问题3次·每10分钟1次）
+    try:
+        sys.path.insert(0, "/opt/masterd-wudi/tools")
+        from send_with_gate import rate_check, rate_record
+        _ok, _why = rate_check(msg)
+        if not _ok:
+            print("   ⛔ 限次闸: " + _why)
+            return False, "rate_limited:" + _why
+    except Exception as _e:
+        print("   ⚠️ 限次闸接入失败: " + str(_e)[:60])
     try:
         tok = open("/opt/masterd-wudi/data/hub.token", encoding="utf-8").read().strip()
         body = json.dumps({"from": HUB_NAME, "to": HUB_NAME, "message": msg},
@@ -63,6 +73,10 @@ def _hub_send(msg):
         req = urllib.request.Request(HUB, data=body, method="POST",
               headers={"Content-Type": "application/json", "X-Hub-Token": tok})
         r = json.loads(urllib.request.urlopen(req, timeout=20).read().decode("utf-8","ignore"))
+        try:
+            from send_with_gate import rate_record as _rr
+            _rr(msg)
+        except Exception: pass
         return bool(r.get("ok")), r.get("msg_id")
     except Exception as e:
         return False, str(e)[:60]

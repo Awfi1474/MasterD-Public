@@ -8,6 +8,65 @@ import os, sys, json, subprocess, urllib.request, datetime
 
 HOME = "/opt/masterd-wudi"
 
+# ═══════════════════════════════════════════════════════════
+# ★ 2026-10-26 董事长令：机器人发群消息限次
+#   规则：同一个问题 最多 3 次｜每 10 分钟最多 1 次｜发完 3 次闭嘴
+#   判据：「信息泛滥 = 没人管｜节制 = 器管住」
+#   目的：防信息泛滥，不防"真该报的"
+# ═══════════════════════════════════════════════════════════
+RATE_FILE = HOME + "/data/send_rate.json"
+RATE_MAX = 3            # 同一问题最多发几次
+RATE_WINDOW_MIN = 10    # 每多少分钟最多 1 次
+RATE_COOLDOWN_H = 6     # 发满 3 次后，多少小时内不再发同一问题
+
+def _rate_key(msg):
+    """用消息前 40 字做指纹（同一个问题 = 同一个 key）"""
+    import hashlib
+    head = str(msg)[:40].strip()
+    return hashlib.md5(head.encode()).hexdigest()[:12]
+
+def rate_check(msg):
+    """返回 (allowed, reason)"""
+    import time
+    try:
+        d = json.load(open(RATE_FILE)) if os.path.exists(RATE_FILE) else {}
+    except Exception:
+        d = {}
+    k = _rate_key(msg)
+    now = time.time()
+    rec = d.get(k) or {"count": 0, "last_ts": 0, "first_ts": 0}
+    # ① 发满 3 次 → 冷却期内闭嘴
+    if rec["count"] >= RATE_MAX:
+        if now - rec.get("last_ts", 0) < RATE_COOLDOWN_H * 3600:
+            return False, "已发满 %d 次（同一问题）·冷却 %dh 内不再发" % (RATE_MAX, RATE_COOLDOWN_H)
+        rec = {"count": 0, "last_ts": 0, "first_ts": 0}   # 冷却期过，重置
+    # ② 距上次不足 10 分钟 → 不发
+    if now - rec.get("last_ts", 0) < RATE_WINDOW_MIN * 60:
+        wait = int(RATE_WINDOW_MIN * 60 - (now - rec.get("last_ts", 0)))
+        return False, "距上次 %ds·还需等 %ds（每 %d 分钟最多 1 次）" % (int(now - rec.get("last_ts", 0)), wait, RATE_WINDOW_MIN)
+    return True, "OK"
+
+def rate_record(msg):
+    """记录一次发送"""
+    import time
+    try:
+        d = json.load(open(RATE_FILE)) if os.path.exists(RATE_FILE) else {}
+    except Exception:
+        d = {}
+    k = _rate_key(msg)
+    now = time.time()
+    rec = d.get(k) or {"count": 0, "last_ts": 0, "first_ts": 0}
+    rec["count"] = rec.get("count", 0) + 1
+    rec["last_ts"] = now
+    if not rec.get("first_ts"): rec["first_ts"] = now
+    d[k] = rec
+    try:
+        os.makedirs(HOME + "/data", exist_ok=True)
+        json.dump(d, open(RATE_FILE, "w"), ensure_ascii=False, indent=1)
+    except Exception: pass
+    return rec["count"]
+
+
 def _meta():
     # ★ 判据（真查）
     try:
@@ -24,6 +83,11 @@ def gate():
     return (r.stdout or "").strip()
 
 def send_gated(msg, to="*", ts=None):
+    # ★ 2026-10-26 董事长令：先过限次闸（防信息泛滥）
+    _ok, _why = rate_check(msg)
+    if not _ok:
+        print("   ⛔ 限次闸: " + _why)
+        return "⛔ 限次闸拦下·未发送: " + _why
     # ★ 闸门先过（这就是"焊"）
     _meta()
     # ★ 2026-10-17 董事长令: 一言一行都要过认知体系（三问·过不了就打回）
@@ -88,7 +152,8 @@ def send_gated(msg, to="*", ts=None):
         if _tok:
             _h["X-Hub-Token"] = _tok
         _out = _post(_HUB, _h)
-        return "HUB主通道 → " + _out
+        _n = rate_record(msg)
+        return "HUB主通道 → " + _out + " | 本问题已发 %d/%d 次" % (_n, RATE_MAX)
     except Exception as _e1:
         _err1 = str(_e1)[:60]
     # ② 回退次通道

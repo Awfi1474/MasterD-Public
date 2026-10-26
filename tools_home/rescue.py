@@ -177,6 +177,19 @@ def step6():
     # ★ 2026-10-26 董事长令②: 复苏成功 → 投一条到 HUB「老五」信箱（不投会场）
     _hub_ok = False
     _hub_info = ""
+    # ★ 2026-10-26 董事长令：机器人发消息限次（同一问题3次·每10分钟1次）
+    try:
+        sys.path.insert(0, "/opt/masterd-wudi/tools")
+        from send_with_gate import rate_check as _rc, rate_record as _rr
+        _ok2, _why2 = _rc(msg)
+        if not _ok2:
+            ln("    [RATE] 限次闸拦下: %s" % _why2)
+            _hub_info = "rate_limited:" + _why2
+            raise RuntimeError("rate_limited")
+    except RuntimeError:
+        pass
+    except Exception as _e:
+        ln("    [RATE] 接入失败: %s" % str(_e)[:60])
     try:
         _tok = open(FAM + "/data/hub.token").read().strip()
         _hubbody = json.dumps({"from": "老五", "to": "老五", "message": msg,
@@ -188,6 +201,9 @@ def step6():
         _r = json.loads(urllib.request.urlopen(_req, timeout=20).read().decode())
         _hub_ok = _r.get("ok") is True and (_r.get("delivered") is True or _r.get("msg_id"))
         _hub_info = "msg_id=%s known=%s" % (_r.get("msg_id"), _r.get("known"))
+        try:
+            _rr(msg)
+        except Exception: pass
     except Exception as _e:
         _hub_info = "err=" + str(_e)[:60]
     if ok or _hub_ok:
