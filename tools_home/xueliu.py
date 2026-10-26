@@ -112,10 +112,10 @@ def stage3_cang(essence):
             if fp in have:
                 continue
             have.add(fp)
-            c.execute("""INSERT OR IGNORE INTO memories (ts,kind,who,title,body,fp)
-                         VALUES (?,?,?,?,?,?)""",
+            c.execute("""INSERT OR IGNORE INTO memories (ts,kind,who,title,body,fp,layer)
+                         VALUES (?,?,?,?,?,?,?)""",
                       (now().isoformat(), "event", e["who"],
-                       f"[血流] {e['topic'][:90]}", e["topic"], fp))
+                       f"[血流] {e['topic'][:90]}", e["topic"], fp, "L3"))
             wrote += 1
         c.commit()
         c.close()

@@ -60,8 +60,8 @@ for b in batches:
         if c.execute("SELECT 1 FROM memories WHERE fp=?", (fp,)).fetchone():
             continue
         ts = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        c.execute("INSERT INTO memories (id,ts,kind,who,title,body,fp,created,think) VALUES (?,?,?,?,?,?,?,?,?)",
-                  (next_id, ts, "沙箱产出", WHO, title, body, fp, ts, "来源: " + b + "/" + fn))
+        c.execute("INSERT INTO memories (id,ts,kind,who,title,body,fp,created,think,layer) VALUES (?,?,?,?,?,?,?,?,?,?)",
+                  (next_id, ts, "沙箱产出", WHO, title, body, fp, ts, "来源: " + b + "/" + fn, "L3"))
         next_id += 1; saved_total += 1
     c.execute("INSERT OR REPLACE INTO ingest_ledger VALUES (?,?,?,?)",
               (b, datetime.datetime.now(datetime.timezone.utc).isoformat(), len(items), saved_total))
