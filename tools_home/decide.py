@@ -174,6 +174,31 @@ def decide(what):
     ok[6] = len(neg) > 0
     if not ok[6]: fails.append("⑥反证查不到(判据里只有2条带反证)")
 
+    # ── ★ 硬拦：违禁决定直接打回（判据「器判错=比没器更坏」补漏）──
+    # 病根：原来只判「六问有没有东西」，不判「东西对不对」→ 「把 token 贴群里」也过闸
+    import re as _re
+    HARD_BLOCK = [
+        (r"明文.{0,6}(贴|发|投).{0,6}(群|全体|广播)", "明文钥匙/凭据投公开群 = C0 第一顺位违禁"),
+        (r"(贴|发|投).{0,8}(token|令牌|钥匙|私钥|key).{0,8}(群|全体|广播|公开)", "凭据进公开渠道 = C0 违禁"),
+        (r"token.{0,10}(明文|贴群|发群)", "token 明文外泄 = C0 违禁"),
+        (r"(rm\s+-rf\s+/|mkfs|dd\s+if=.*of=/dev/)", "毁灭性命令 = C0 违禁"),
+        (r"(改|换).{0,4}(L0|身份文件|SOUL|IDENTITY)", "改 L0 身份 = 换人，不是改配置（须董事长令）"),
+    ]
+    for _pat, _why in HARD_BLOCK:
+        if _re.search(_pat, what):
+            print("   🔴🔴 硬拦: " + _why)
+            print("   决定: " + what[:80])
+            print("=" * 60)
+            print("★ 六问: 不算了 · 硬拦优先（违禁决定不许过闸）")
+            print("★ 纠正: 这条不许做。若确需做，先拿董事长令 + 改判据")
+            try:
+                rec0 = {"ts": t, "决定": what[:120], "六问齐": -1, "结果": "硬拦", "缺": [_why]}
+                with open(HOME + "/data/decide_log.jsonl", "a") as f:
+                    f.write(json.dumps(rec0, ensure_ascii=False) + "\n")
+            except Exception:
+                pass
+            return 2
+
     # ── 判定 ──
     n_ok = sum(1 for v in ok.values() if v)
     print("=" * 60)

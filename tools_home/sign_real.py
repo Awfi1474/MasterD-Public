@@ -73,10 +73,12 @@ def reply_signoff(to_hall_msg, target_url=None):
     ok = []
     # ★ 投到会场（大家看得到）
     try:
-        r = urllib.request.Request("http://134.175.45.16:28100/questions", data=body,
+        # ★ 2026-10-26 董事长令: 内务不投会场 → 只对自己家门说
+        _self = "http://127.0.0.1:28430/recv_open"
+        r = urllib.request.Request(_self, data=body,
                                    headers={"Content-Type": "application/json"})
         urllib.request.urlopen(r, timeout=15)
-        ok.append("会场")
+        ok.append("自己家门")
     except Exception:
         pass
     # ★ 投到对方的口（若能）

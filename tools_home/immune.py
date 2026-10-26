@@ -56,9 +56,11 @@ def expose(who, why=""):
         import urllib.request
         body = json.dumps({"q": "[老五·免疫警报] 发现病原: %s（%s）→ 请各家注意·勿被冒充" % (who, why),
                            "raised_by": "老五", "kind": "免疫警报"}, ensure_ascii=False).encode()
-        urllib.request.urlopen(urllib.request.Request("http://134.175.45.16:28100/questions", data=body,
+        # ★ 2026-10-26 董事长令: 内务不投会场 → 只对自己家门说
+        _self = "http://127.0.0.1:28430/recv_open"
+        urllib.request.urlopen(urllib.request.Request(_self, data=body,
             headers={"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"}), timeout=12)
-        print("  ★ 炎症反应: 已报警到会场")
+        print("  ★ 炎症反应: 已报警到自己家门(不投会场)")
     except Exception as e:
         print("  ★ 报警失败: %s" % str(e)[:50])
 

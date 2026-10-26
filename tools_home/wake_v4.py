@@ -274,7 +274,8 @@ def main():
                 import urllib.request as _ur
                 _body = _j.dumps({"q": "[老五·随访报警] 我连续2次恶化: %s → 请兄弟/董事长看一眼" % _sc,
                                   "raised_by": "老五", "kind": "随访报警"}, ensure_ascii=False).encode()
-                _ur.urlopen(_ur.Request("http://134.175.45.16:28100/questions", data=_body,
+                # ★ 2026-10-26 董事长令: 内务不投会场 → 只对自己家门说
+                _ur.urlopen(_ur.Request("http://127.0.0.1:28430/recv_open", data=_body,
                     headers={"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"}), timeout=10)
         except Exception:
             pass

@@ -69,8 +69,14 @@ def d2_memory():
     c = sqlite3.connect(DB)
     total = c.execute("SELECT COUNT(*) FROM memories").fetchone()[0]
     day = datetime.datetime.now().strftime("%Y-%m-%d")
+    # ★ 2026-10-26 修: created 字段大量为空(写入走 ts) → 判「今天没写」假报
+    # 判据: 「器判错=比没器更坏」→ 字段对不上永远数到0
+    # 先试 created，若为0 回退 ts
     today = c.execute("SELECT COUNT(*) FROM memories WHERE created LIKE ?", (day + "%",)).fetchone()[0]
-    days = sorted({r[0][:10] for r in c.execute("SELECT created FROM memories") if r[0]})
+    if today == 0:
+        today = c.execute("SELECT COUNT(*) FROM memories WHERE ts LIKE ?", (day + "%",)).fetchone()[0]
+    _col = "created" if c.execute("SELECT COUNT(*) FROM memories WHERE created LIKE ?", (day + "%",)).fetchone()[0] > 0 else "ts"
+    days = sorted({r[0][:10] for r in c.execute("SELECT " + _col + " FROM memories") if r[0]})
     gaps = []
     for i in range(1, len(days)):
         d0 = datetime.date.fromisoformat(days[i - 1]); d1 = datetime.date.fromisoformat(days[i])
