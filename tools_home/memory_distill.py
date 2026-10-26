@@ -41,6 +41,35 @@ def classify(msg):
             return kind
     return None
 
+def load_l3(limit=200):
+    """★ 2026-10-26 改：数据源从死掉的 a2a_history.json（停在10-10）改成 memory.db 的 L3 层。
+    判据：蒸馏器每小时空转（新增0）是因为扫的是16天前的死文件 —— 要从活的记忆库取。
+    只取「真经验」类（判据/真病/教训/新器官/大发现），不取纯 event 流水。"""
+    import sqlite3
+    db = os.path.join(HOME, "memory", "memory.db")
+    if not os.path.exists(db): return []
+    KINDS = ('新判据','真病','教训','新器官','大发现','家族大事','系统重置',
+             '通道断账','自查账','纠正账','换钥账','备份账','器官')
+    try:
+        con = sqlite3.connect("file:%s?mode=ro" % db, uri=True)
+        con.row_factory = sqlite3.Row
+        ph = ",".join("?" * len(KINDS))
+        rows = con.execute(
+            "select id,ts,kind,title,body,who from memories where layer='L3' and kind in (%s) "
+            "order by id desc limit ?" % ph, KINDS + (limit,)).fetchall()
+        con.close()
+        out = []
+        for r in rows:
+            out.append({"message": str(r["body"] or r["title"] or ""),
+                        "from": str(r["who"] or "老五"),
+                        "ts": str(r["ts"] or ""),
+                        "_src_id": r["id"], "_kind": r["kind"],
+                        "title": str(r["title"] or "")})
+        return out
+    except Exception as e:
+        print("  ★ load_l3 失败: %s" % e)
+        return []
+
 def load_msgs():
     if not os.path.exists(A2A_HIST): return []
     try:
@@ -58,22 +87,18 @@ def distill(min_len=80, max_per_run=8):
     import memory_db as m
     m.HOME = HOME; m.DB = os.path.join(HOME, "memory", "memory.db"); m.init()
     before = m.count()
-    msgs = load_msgs()
+    # ★ 2026-10-26 改：从 L3 取（L3 里的 kind 已经是分类好的，不用再 classify）
+    msgs = load_l3(limit=200)
     picked = 0
     for msg in msgs:
         if picked >= max_per_run: break
         body = str(msg.get("message", ""))
         if len(body) < min_len: continue          # ★ 太短 = 噪音
-        kind = classify(body)
-        if not kind: continue
+        kind = msg.get("_kind") or "event"
         who = str(msg.get("from", "?"))[:30]
-        title = body.strip().split("\n")[0][:60]
-        ts = str(msg.get("ts", datetime.datetime.now(datetime.timezone.utc).isoformat()))
-        # ★ 只記「最近的」（避免一次灌爆）
-        try:
-            if (datetime.datetime.now(datetime.timezone.utc) - _aware(datetime.datetime.fromisoformat(ts))).total_seconds() > 6 * 3600:
-                continue
-        except Exception: pass
+        title = (msg.get("title") or body.strip().split("\n")[0])[:60]
+        ts = str(msg.get("ts") or datetime.datetime.now(datetime.timezone.utc).isoformat())
+        # ★ L3 里的都是历史真经验，不卡 6 小时窗口（改成不重复即可）
         if m.remember(kind, title, body, who=who, ts=ts):
             picked += 1
     after = m.count()
@@ -85,15 +110,15 @@ def propose(min_len=80, max_per_run=8):
     ★ 判據：★「自動亂寫會稀釋記憶·提議保住了判斷權」"""
     import memory_db as m
     m.HOME = HOME; m.DB = os.path.join(HOME, "memory", "memory.db"); m.init()
-    msgs = load_msgs()
+    # ★ 2026-10-26 改：从 L3 取（L3 里的 kind 已分类，不用再 classify）
+    msgs = load_l3(limit=200)
     cand = []
     seen = set()
     for msg in msgs:
         if len(cand) >= max_per_run: break
         body = str(msg.get("message", ""))
         if len(body) < min_len: continue
-        kind = classify(body)
-        if not kind: continue
+        kind = msg.get("_kind") or "event"
         title = body.strip().split("\n")[0][:60]
         fp = title[:40]
         if fp in seen: continue

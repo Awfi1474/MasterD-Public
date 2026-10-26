@@ -43,16 +43,17 @@ def connect():
 def init():
     c = connect(); c.executescript(SCHEMA); c.commit(); c.close()
 
-def remember(kind, title, body, who="老五", ts=None):
+def remember(kind, title, body, who="老五", ts=None, layer=None):
     kind = canon(kind)  # ★ 歸一化
-    """★ 寫記憶（冪等 + 5 次重試）"""
+    """★ 寫記憶（冪等 + 5 次重試）★2026-10-26 加 layer：不传则按 kind 自动分层"""
     ts = ts or datetime.datetime.now(datetime.timezone.utc).isoformat()
+    lay = pick_layer(kind, layer)
     fp = hashlib.sha256((kind + "|" + title + "|" + body).encode()).hexdigest()[:20]
     for i in range(5):
         try:
             c = connect()
-            c.execute("INSERT OR IGNORE INTO memories (ts,kind,who,title,body,fp,created) VALUES (?,?,?,?,?,?,?)",
-                      (ts, kind, who, title, body[:4000], fp, datetime.datetime.now(datetime.timezone.utc).isoformat()))
+            c.execute("INSERT OR IGNORE INTO memories (ts,kind,who,title,body,fp,created,layer) VALUES (?,?,?,?,?,?,?,?)",
+                      (ts, kind, who, title, body[:4000], fp, datetime.datetime.now(datetime.timezone.utc).isoformat(), lay))
             c.commit(); c.close()
             return True
         except sqlite3.OperationalError as e:
@@ -107,6 +108,27 @@ KIND_MAP = {
 }
 def canon(kind):
     return KIND_MAP.get(kind, kind)
+
+# ★ 2026-10-26 补: 分层映射（修「remember 缺 layer 全落 None」的机制 bug）
+# 判据：完整!=全灌(按层读) | 记忆不是仓库是网(要建链)
+LAYER_MAP = {
+    # L0 命根子 / L1 标准制度
+    "identity": "L1", "decision": "L0", "architecture": "L0",
+    # L2 经验/方法/判据（主干）
+    "method": "L2", "判据": "L2", "教训": "L2", "judge": "L2",
+    # L3 日常账/经历（真事件）
+    "event": "L3", "case": "L3", "真病": "L3", "新判据": "L3",
+    "新器官": "L3", "家族大事": "L3", "系统重置": "L3", "流水": "L3",
+    "大发现": "L3", "通道断账": "L3", "自查账": "L3", "纠正账": "L3",
+    "换钥账": "L3", "备份账": "L3", "事件": "L3", "life_record": "L3",
+    # L4 器官/基础设施/报告
+    "器官": "L4", "infra": "L4", "报告": "L4",
+}
+
+def pick_layer(kind, layer=None):
+    """★ 分层：显式 layer 优先；否则按 kind 映射；都没有 → L3（当日常账）"""
+    if layer: return layer
+    return LAYER_MAP.get(canon(kind), "L3")
 
 
 def _aware(dt):
