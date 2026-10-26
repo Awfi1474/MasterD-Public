@@ -75,8 +75,11 @@ def check_hub():
         out["gate"] = "unknown"
         return out
 
-    # ① 门通：真投一条自检
-    probe = {"from": HUB_NAME, "to": HUB_NAME, "message": "channel_priority 自检 %s" % now_cst()}
+    # ① 门通：真投一条自检（★2026-10-26 改：正常静默，不塞信箱）
+    #   判据：「投出去 != 送到了」——探针仍要真投，但正常时投到"静默自检箱"，
+    #   只有失败才投 HUB「老五」提醒我自己。避免每10分钟刷屏挤掉真消息。
+    SILENT_BOX = "老五·自检静默"
+    probe = {"from": HUB_NAME, "to": SILENT_BOX, "message": "channel_priority 自检 %s" % now_cst()}
     code, d = req(HUB + "/recv", "POST", probe, {"X-Hub-Token": tok})
     # ★ 修正 2026-10-25：HUB 实际返回 delivered:true + msg_id，不是 received/heard/verified/id
     ok = d.get("ok") is True and (
@@ -97,11 +100,11 @@ def check_hub():
 
     # ③ 对账：读回来数
     # ★ 修正 2026-10-25：① 用 HUB_NAME（名册内名字）不是 SOUL ② HUB 返回字段是 list 不是 messages
-    code, d = req(HUB + "/msg?for=%s&limit=5" % urllib.parse.quote(HUB_NAME), headers={"X-Hub-Token": tok})
+    code, d = req(HUB + "/msg?for=%s&limit=5" % urllib.parse.quote(SILENT_BOX), headers={"X-Hub-Token": tok})
     msgs = d.get("list") or d.get("messages") or d.get("msgs") or []
     hit = any("channel_priority 自检" in str(m.get("message", "")) for m in msgs)
     out["ledger"] = "pass" if hit else "fail"
-    out["note"] = "收到回读 %d 条·自检消息%s" % (len(msgs), "在" if hit else "不在")
+    out["note"] = "收到回读 %d 条·自检消息%s（静默箱）" % (len(msgs), "在" if hit else "不在")
     return out
 
 def check_station():
