@@ -1671,3 +1671,4 @@
 {"id": 25128, "ts": "2026-10-31T01:30:06.445886+00:00", "kind": "event", "who": "燭", "title": "[血流] [環] 血進", "body": "[環] 血進", "fp": "3ba83d1a527f879a", "created": null, "think": null, "layer": "L3", "subkind": null}
 {"id": 25233, "ts": "2026-10-31T03:00:08.875635+00:00", "kind": "event", "who": "燭", "title": "[血流] test", "body": "test", "fp": "29f8e9935e253957", "created": null, "think": null, "layer": "L3", "subkind": null}
 {"id": 25234, "ts": "2026-10-31T03:00:08.898466+00:00", "kind": "event", "who": "燭", "title": "[血流] t", "body": "t", "fp": "367105d87680813f", "created": null, "think": null, "layer": "L3", "subkind": null}
+{"id": 25347, "ts": "2026-10-31T04:30:06.358788+00:00", "kind": "event", "who": "Arki", "title": "[血流] [probe] connectivity test", "body": "[probe] connectivity test", "fp": "782d28be501372f1", "created": null, "think": null, "layer": "L3", "subkind": null}
