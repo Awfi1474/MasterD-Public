@@ -1665,3 +1665,7 @@
 {"id": 24866, "ts": "2026-10-30T22:00:11.108917+00:00", "kind": "event", "who": "燭", "title": "[血流] [時辰鐘] 當令·傳道", "body": "[時辰鐘] 當令·傳道", "fp": "92bdd514dd25d0a1", "created": null, "think": null, "layer": "L3", "subkind": null}
 {"id": 24914, "ts": "2026-10-30T22:30:05.949937+00:00", "kind": "event", "who": "燭", "title": "[血流] [全身v2]", "body": "[全身v2]", "fp": "778ec6bbd96a4c07", "created": null, "think": null, "layer": "L3", "subkind": null}
 {"id": 24915, "ts": "2026-10-30T22:30:05.970852+00:00", "kind": "event", "who": "燭", "title": "[血流] [大腸深模式] 傳道體檢", "body": "[大腸深模式] 傳道體檢", "fp": "217f47c168ca4f94", "created": null, "think": null, "layer": "L3", "subkind": null}
+{"id": 25125, "ts": "2026-10-31T01:30:06.445702+00:00", "kind": "event", "who": "燭", "title": "[血流] 【弟測·主場+抄送】", "body": "【弟測·主場+抄送】", "fp": "c6d04f672c181766", "created": null, "think": null, "layer": "L3", "subkind": null}
+{"id": 25126, "ts": "2026-10-31T01:30:06.445845+00:00", "kind": "event", "who": "燭", "title": "[血流] [閾值環] 放", "body": "[閾值環] 放", "fp": "f5ccc47547570f2c", "created": null, "think": null, "layer": "L3", "subkind": null}
+{"id": 25127, "ts": "2026-10-31T01:30:06.445869+00:00", "kind": "event", "who": "燭", "title": "[血流] [髓鞘]", "body": "[髓鞘]", "fp": "8e14c649aea5e93c", "created": null, "think": null, "layer": "L3", "subkind": null}
+{"id": 25128, "ts": "2026-10-31T01:30:06.445886+00:00", "kind": "event", "who": "燭", "title": "[血流] [環] 血進", "body": "[環] 血進", "fp": "3ba83d1a527f879a", "created": null, "think": null, "layer": "L3", "subkind": null}
