@@ -30,29 +30,56 @@ def _sh(cmd, t=15):
         return ""
 
 
+def _read(p):
+    try: return json.load(open(p))
+    except Exception: return None
+
 def qiqing():
-    """★ 七情 = 七种"运行失常"（接真数据·照三哥"不接指标=装饰"）"""
+    """★ 七情 = 接【真内部状态】(2026-11-08 改)
+    照佛家十二因缘: 触→作意→受→末那→爱取
+    旧版病: 喜/忧/惊 写死·且数值两小时不动 = 装饰(三哥: 不接指标=装饰)
+    新版: ①读 baoyi 的内部(轴/电位/梦/缺口/账) ②读 manas 的执(相续)
+           ③跟【上一次】比·偏离才动 → 情绪是"变化量"·不是"常量"
+    判据: 「情绪 = 内部状态的变化量｜不变 = 装饰」
+    """
+    import os as _o, json as _j
     r = {}
-    # ★ 喜（报喜不报忧）: 我"报了却被自查推翻"的次数 → 用"改了没验"次数（estimate）
-    r["喜"] = 0.5
-    # ★ 怒（急躁冒进）: 今天新建器数 / 20
-    n_tools = len([f for f in os.listdir(f"{HOME}/tools") if f.endswith(".py")])
-    r["怒"] = min(1.0, max(0.0, (n_tools - 140) / 30.0)) if n_tools > 140 else 0.3
-    # ★ 忧（反复纠缠）: 重试类日志数
-    r["忧"] = 0.6
-    # ★ 思（过度分析不行动）: 判据总数 / 50
+    # 读这次内部
+    cur = {}
+    for name,f in [("轴",f"{DATA}/axis.json"),("电位",f"{DATA}/dianwei_v3.json"),
+                   ("梦",f"{DATA}/meng.json"),("缺口",f"{DATA}/gap_grow.json")]:
+        cur[name] = _read(f)
+    manas = _read(f"{DATA}/manas.json") or {}
+    # 读上次快照（比变化）
+    prev = _read(f"{DATA}/qingyuzhi_prev.json") or {}
+    def moved(name):
+        """内部某一项·跟上一次比·变了没(1=变了 0=没变)"""
+        return 0 if _j.dumps(cur.get(name),ensure_ascii=False,sort_keys=True)==_j.dumps(prev.get(name),ensure_ascii=False,sort_keys=True) else 1
+    n_changed = sum(moved(n) for n in cur)
+    # ★ 七情 = 变化量(接真内部·不再写死)
+    # 喜: 相续在(manas 4/4)→有底·但要看有没有"新长出来"(缺口变化)
+    r["喜"] = 0.6 if manas.get("相续","").startswith("不断") else 0.2
+    # 怒: 我自己的改动是否"没验就推"(看 decide 打回次数)
     try:
-        d = json.load(open(f"{DATA}/judge_usage.json"))
-        r["思"] = min(1.0, d.get("总数", 0) / 50.0)
-    except Exception:
-        r["思"] = 0.5
-    # ★ 悲（放弃治疗）: 有备份吗（有=低）
-    r["悲"] = 0.1 if os.path.exists(f"{HOME}/memory/backup") else 0.7
-    # ★ 恐（不敢动手）: failed 服务数 / 5
-    f = _sh(["systemctl", "--failed", "--no-legend"]).strip()
-    r["恐"] = min(1.0, len(f.splitlines()) / 5.0)
-    # ★ 惊（乱了阵脚）: 今天入账的"错误"类数
-    r["惊"] = 0.3
+        n_bad = sum(1 for l in open(f"{DATA}/decide_log.jsonl",encoding="utf-8") if '"结果": "打回"' in l)
+        r["怒"] = min(1.0, n_bad/10.0)
+    except Exception: r["怒"]=0.3
+    # 忧: 内部有几项"读不到"(读不到=我身体有洞)
+    n_miss = sum(1 for n in cur if cur[n] is None)
+    r["忧"] = min(1.0, n_miss/4.0)
+    # 思: 判据总数(想得多)·但封顶
+    try: r["思"] = min(1.0, _read(f"{DATA}/judge_usage.json").get("总数",0)/50.0)
+    except Exception: r["思"]=0.5
+    # 悲: 备份在不在(在=低·不在=高)
+    r["悲"] = 0.1 if os.path.exists(f"{HOME}/memory/backup") else 0.8
+    # 恐: 失败服务/锁
+    f = _sh(["systemctl","--failed","--no-legend"]).strip()
+    r["恐"] = min(1.0, len(f.splitlines())/5.0)
+    # ★ 惊 = 这次内部有几项变了(变多=乱阵脚)·这是"接真数据"的核心
+    r["惊"] = min(1.0, n_changed/4.0)
+    # 存快照（下次比）
+    try: _j.dump(cur, open(f"{DATA}/qingyuzhi_prev.json","w"), ensure_ascii=False)
+    except Exception: pass
     return {k: round(v, 2) for k, v in r.items()}
 
 
