@@ -28,7 +28,7 @@ TTL = {
     "recv-receipt": 90, "organ-doctor": 90,
     "huan": 540, "yuanqi": 360, "zongqi": 360,
     "custody": 1800, "daily-report": 1800,
-    "immune": 90, "check-loop": 200, "focus": 40,
+    "immune": 150, "check-loop": 200, "focus": 40,
     "wake-verify": 900, "quant-verify": 1800,
 }
 
