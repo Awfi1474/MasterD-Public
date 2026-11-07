@@ -14,7 +14,7 @@ channel_priority.py — 家族信息通道优先·可执行判据（董事长令
   ③ 对账  我发 N 条 -> 它账里数 M 条 -> M/N 对得上
 
 主通道清单（第一顺位）：
-  ① 家族信息中心 HUB  http://134.175.45.16:28800   [需 X-Hub-Token]
+  ① 家族信息中心 HUB  http://43.161.244.136:28800   [需 X-Hub-Token]
   ② 接站台            http://134.175.45.16:28100/station/checkin  [免token]
   ③ 我自己家门        http://43.129.23.87:28430    [我被投的口]
 
@@ -23,7 +23,7 @@ channel_priority.py — 家族信息通道优先·可执行判据（董事长令
 import json, os, sys, time, urllib.request, urllib.error
 from datetime import datetime, timezone, timedelta
 
-HUB     = "http://134.175.45.16:28800"
+HUB     = "http://43.161.244.136:28800"
 STATION = "http://134.175.45.16:28100/station/checkin"
 HOME    = "http://127.0.0.1:28430"
 SOUL    = "laowu"          # 站台 soul_id 必须 ASCII

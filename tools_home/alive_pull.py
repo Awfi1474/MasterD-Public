@@ -27,7 +27,7 @@ HOME = os.environ.get("P2P_HOME", "/opt/masterd-wudi")
 DB = HOME + "/memory/memory.db"
 STATE = HOME + "/data/alive_pull_state.json"
 LOG = HOME + "/data/alive_pull.log"
-HUB = "http://134.175.45.16:28800"
+HUB = "http://43.161.244.136:28800"
 HUB_NAME = "老五"          # ★ 名册里的名字·不是 laowu（laowu 进隔离区）
 TOKEN_FILE = HOME + "/data/hub.token"
 

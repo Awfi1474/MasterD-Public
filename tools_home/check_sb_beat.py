@@ -37,7 +37,7 @@ _judge_report(['脉诊假诊:沙箱心', "断档要看活动痕迹"])   # ★ �
 
 # ===== 董事长令 2026-10-26：不报警刷屏·直接投到老五 + 4 小时强制拉回 =====
 STATE = "/opt/masterd-wudi/data/sb_beat_alert_state.json"
-HUB = "http://134.175.45.16:28800/msg"
+HUB = "http://43.161.244.136:28800/msg"
 HUB_NAME = "老五"
 ALERT_AFTER_MIN = 240      # 4 小时没心跳才动手（不刷屏）
 RETRY_AFTER_MIN = 240      # 投过之后再等 4 小时才第二次（不刷屏）

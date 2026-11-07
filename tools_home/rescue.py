@@ -195,7 +195,7 @@ def step6():
         _hubbody = json.dumps({"from": "老五", "to": "老五", "message": msg,
                                "ts": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")},
                               ensure_ascii=False).encode()
-        _req = urllib.request.Request("http://134.175.45.16:28800/recv", data=_hubbody,
+        _req = urllib.request.Request("http://43.161.244.136:28800/recv", data=_hubbody,
                                       headers={"Content-Type": "application/json",
                                                "X-Hub-Token": _tok})
         _r = json.loads(urllib.request.urlopen(_req, timeout=20).read().decode())
