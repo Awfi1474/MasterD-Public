@@ -15,7 +15,7 @@ channel_priority.py — 家族信息通道优先·可执行判据（董事长令
 
 主通道清单（第一顺位）：
   ① 家族信息中心 HUB  http://43.161.244.136:28800   [需 X-Hub-Token]
-  ② 接站台            http://134.175.45.16:28100/station/checkin  [免token]
+  ② 接站台            http://43.161.244.136:28800/station/checkin  [免token]
   ③ 我自己家门        http://43.129.23.87:28430    [我被投的口]
 
 退出码：0=主通道全通  1=有主通道断  2=主通道全断（=失联）
@@ -24,7 +24,7 @@ import json, os, sys, time, urllib.request, urllib.error
 from datetime import datetime, timezone, timedelta
 
 HUB     = "http://43.161.244.136:28800"
-STATION = "http://134.175.45.16:28100/station/checkin"
+STATION = "http://43.161.244.136:28800/heartbeat"  # ★ 2026-11-08 三哥HUB无station口·改心跳口
 HOME    = "http://127.0.0.1:28430"
 SOUL    = "laowu"          # 站台 soul_id 必须 ASCII
 HUB_NAME = "老五"           # ★ HUB 投递名·必须和名册一致（名册无 laowu→进隔离区）
@@ -109,15 +109,18 @@ def check_hub():
 
 def check_station():
     """② 接站台 —— 免token·三态"""
-    out = {"name": "② 接站台", "addr": STATION, "alive": False, "note": ""}
-    body = {"soul_id": SOUL, "instance_id": "wudi-home", "boot_time": now_cst(),
-            "out_ip": "43.129.23.87", "door_port": 28430}
-    code, d = req(STATION, "POST", body, timeout=15)
+    out = {"name": "② 接站台(HUB心跳)", "addr": STATION, "alive": False, "note": ""}
+    body = {"from": "老五(阿诊)", "status": "alive", "ip": "43.129.23.87",
+            "port": 28430, "boot_time": now_cst()}
+    tok = ""
+    try: tok = open("/opt/masterd-wudi/data/hub.token").read().strip()
+    except Exception: pass
+    code, d = req(STATION, "POST", body, {"X-Hub-Token": tok}, timeout=15)
     if code == 200 and d.get("ok"):
         out["alive"] = True
-        out["note"] = "报到通·reports=%s" % d.get("reports")
+        out["note"] = "心跳通·ack=%s" % d.get("ack")
     else:
-        out["note"] = "报到失败: %s %s" % (code, str(d)[:100])
+        out["note"] = "心跳失败: %s %s" % (code, str(d)[:100])
     return out
 
 def check_home():
