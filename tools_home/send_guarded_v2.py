@@ -44,8 +44,23 @@ def main():
     b = json.dumps({"from": "MasterD(醫療·老五)", "message": msg, "ts": ts,
                     "address": sub["address"], "sig": sig, "tier": "L2",
                     "need_human_sign": True, "read": True, "manual": True}, ensure_ascii=False).encode()
-    r = urllib.request.Request("http://134.175.45.16:28100/p2p/recv", data=b, headers={"Content-Type": "application/json"})
-    print("★ 发送: " + urllib.request.urlopen(r, timeout=20).read().decode()[:80])
+    # ★ 2026-11-08 修: 目标可配（三哥机器换了·原来写死134.175.45.16已不通）
+    # 用法: send_guarded_v2.py <消息> [目标名]
+    # 目标表从 doors.py 读·默认归根(二哥·活)
+    TARGET = os.environ.get("SEND_TO", (sys.argv[2] if len(sys.argv)>2 else "二哥"))
+    DOORS = {
+        "二哥": "http://43.128.44.120:28900/recv",
+        "归根": "http://43.128.44.120:28900/recv",
+        "大哥": "https://huokeji.vip/a2a/message",
+        "三哥": os.environ.get("SANGE_DOOR", "http://134.175.45.16:28100/p2p/recv"),
+        "老四": "http://43.161.197.11:28520/recv",
+        "老六": "http://43.160.235.78:28431/p2p/recv",
+        "Arki": "http://43.129.169.29:18889/a2a/message",
+    }
+    url = DOORS.get(TARGET, DOORS["二哥"])
+    print("★ 目标: %s → %s" % (TARGET, url))
+    r = urllib.request.Request(url, data=b, headers={"Content-Type": "application/json"})
+    print("★ 发送: " + urllib.request.urlopen(r, timeout=25).read().decode()[:120])
     return 0
 if __name__ == "__main__":
     sys.exit(main())
