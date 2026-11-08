@@ -232,7 +232,24 @@ def main():
             got["取信"] = len(_rows)
         except Exception as _e7b:
             print("   🔴 第七读(本地门)也失败: " + str(_e7b)[:40])
-    # ★ 2026-11-08 补·第八读:回执检查(照今天"回执要焊进必经路"·治"推10回3")
+    # ★ 2026-11-08 补·第七读半:/sync(全族真往来·不只"发给我的")
+    #   判据:「只发给我的!=全族的事|真往来在/sync:老三<->老六的本体测试就在这」
+    try:
+        import urllib.request as _urx
+        _tokx = ""
+        try: _tokx = open(HOME+"/data/hub.token").read().strip()
+        except Exception: pass
+        if _tokx:
+            _rq = _urx.Request("http://43.161.244.136:28800/sync?since=0")
+            _rq.add_header("X-Hub-Token", _tokx)
+            _sd = json.loads(_urx.urlopen(_rq, timeout=15).read().decode())
+            _sm = [m for m in _sd.get("messages", []) if "[keepalive]" not in str(m.get("message",""))]
+            print("★ 第七读半：/sync(全族真往来) ｜ 总 %d 条·非心跳 %d" % (_sd.get("count",0), len(_sm)))
+            for _m in _sm[-3:]:
+                print("     %s | %s -> %s | %s" % (str(_m.get("received_at",""))[:16], str(_m.get("from",""))[:12], str(_m.get("to",""))[:10], str(_m.get("message",""))[:50].replace(chr(10)," ")))
+            got["全族往来"] = len(_sm)
+    except Exception as _ex:
+        print("   🟡 第七读半(/sync)失败: " + str(_ex)[:40])(照今天"回执要焊进必经路"·治"推10回3")
     #   判据:「收到!=回了|欠回执要扫出来·不靠记」
     try:
         import re as _re8
