@@ -40,8 +40,11 @@ def chart_layers():
     try:
         c = _ro()
         tot = c.execute("SELECT COUNT(*) FROM memories").fetchone()[0]
-        layers = {L: c.execute("SELECT COUNT(*) FROM memories WHERE layer=?", (L,)).fetchone()[0]
-                  for L in ["L0", "L1", "L2", "L3", "L4"]}
+        _ls = ["L0","L1","L2","L3","L4"]
+        layers = {}
+        for _L in _ls:
+            _M = "M" + _L[1]
+            layers[_L] = c.execute("SELECT COUNT(*) FROM memories WHERE layer IN (?,?)", (_L,_M)).fetchone()[0]
         c.close()
         ratio = layers.get("L3", 0) / max(layers.get("L2", 1), 1)
         L0 = layers.get("L0", 0)
@@ -56,15 +59,15 @@ def chart_attribution():
     try:
         c = _ro()
         by_who = [{"who": str(r[0]), "n": r[1]}
-                  for r in c.execute("SELECT who,COUNT(*) FROM memories WHERE layer='L3' GROUP BY who ORDER BY 2 DESC LIMIT 8")]
+                  for r in c.execute("SELECT who,COUNT(*) FROM memories WHERE layer IN ('L3','M3') GROUP BY who ORDER BY 2 DESC LIMIT 8")]
         by_kind = [{"kind": r[0], "n": r[1]}
-                   for r in c.execute("SELECT kind,COUNT(*) FROM memories WHERE layer='L3' GROUP BY kind ORDER BY 2 DESC")]
+                   for r in c.execute("SELECT kind,COUNT(*) FROM memories WHERE layer IN ('L3','M3') GROUP BY kind ORDER BY 2 DESC")]
         # ★ 该不该进主库: 自动类(播报/报到/体检/[血流]) = 该拦; 对话类 = 该留
-        auto = c.execute("""SELECT COUNT(*) FROM memories WHERE layer='L3'
+        auto = c.execute("""SELECT COUNT(*) FROM memories WHERE layer IN ('L3','M3')
                             AND (title LIKE '%自动%' OR title LIKE '%播报%' OR title LIKE '%报到%'
                                  OR title LIKE '%体检%' OR title LIKE '%[血流]%' OR title LIKE '%[血流%')""").fetchone()[0]
-        talk = c.execute("SELECT COUNT(*) FROM memories WHERE layer='L3' AND title LIKE '%→%'").fetchone()[0]
-        week = c.execute("SELECT COUNT(*) FROM memories WHERE layer='L3' AND ts > datetime('now','-7 day')").fetchone()[0]
+        talk = c.execute("SELECT COUNT(*) FROM memories WHERE layer IN ('L3','M3') AND title LIKE '%→%'").fetchone()[0]
+        week = c.execute("SELECT COUNT(*) FROM memories WHERE layer IN ('L3','M3') AND ts > datetime('now','-7 day')").fetchone()[0]
         c.close()
         return {"by_who": by_who, "by_kind": by_kind, "auto": auto, "talk": talk, "week_new": week,
                 "verdict": "自动类 %d 条(该拦·不该进主库)｜对话类 %d 条(该留)" % (auto, talk)}
@@ -84,7 +87,7 @@ def chart_judge_health():
             except Exception:
                 pass
         c = _ro()
-        total_judge = c.execute("SELECT COUNT(*) FROM memories WHERE layer='L2' AND kind='判据'").fetchone()[0]
+        total_judge = c.execute("SELECT COUNT(*) FROM memories WHERE layer IN ('L2','M2') AND kind='判据'").fetchone()[0]
         c.close()
         # ★ 灰: 查不到的不算绿
         miss_rate = miss * 100 // max(n, 1)

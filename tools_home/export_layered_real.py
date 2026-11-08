@@ -22,7 +22,7 @@ rows = con.execute(
 buckets = collections.defaultdict(list)
 for r in rows:
     layer = (r[9] or "L3").strip()
-    if layer not in ("L0","L1","L2","L3","L4"):
+    if layer not in ("L0","L1","L2","L3","L4","M0","M1","M2","M3","M4"):
         layer = "L3"
     buckets[layer].append({
         "id": r[0], "ts": r[1], "kind": r[2], "who": r[3], "title": r[4],
@@ -31,7 +31,7 @@ for r in rows:
     })
 
 counts = {}
-for L in ("L0","L1","L2","L3","L4"):
+for L in ("L0","L1","L2","L3","L4","M0","M1","M2","M3","M4"):
     items = buckets.get(L, [])
     counts[L] = len(items)
     with open(os.path.join(OUT, f"{L}.jsonl"), "w") as f:
@@ -42,7 +42,7 @@ for L in ("L0","L1","L2","L3","L4"):
 with open(os.path.join(OUT, "memory-layered.jsonl"), "w") as f:
     for r in rows:
         layer = (r[9] or "L3").strip()
-        if layer not in ("L0","L1","L2","L3","L4"): layer = "L3"
+        if layer not in ("L0","L1","L2","L3","L4","M0","M1","M2","M3","M4"): layer = "L3"
         f.write(json.dumps({
             "id": r[0], "ts": r[1], "kind": r[2], "who": r[3], "title": r[4],
             "body": r[5], "fp": r[6], "created": r[7], "think": r[8],
