@@ -93,8 +93,9 @@ def _notify(to_role, ctx, msg):
 
 def done(mid, result, ctx=None, next_role=None, _ev=None, _proof=None):
     con = sqlite3.connect(DB, timeout=10); ensure(con)
-    con.execute("UPDATE a2a_inbox SET status='completed',note=?,updated_at=? WHERE msg_id=?",
-                (result[:200], now(), mid))
+    _pfj = json.dumps(_proof,ensure_ascii=False) if isinstance(_proof,(dict,list)) else str(_proof or "")
+    con.execute("UPDATE a2a_inbox SET status='completed',note=?,updated_at=?,event=?,artifact_proof=?,action_type=? WHERE msg_id=?",
+                (result[:200], now(), str(_ev or ""), _pfj, "task_completed" if _ev=="task_completed" else str(_ev or ""), mid))
     con.commit(); con.close()
     print("COMPLETED %s | %s" % (mid, result[:50]))
     # ★ 事件驱动+链式传动:干完立刻自动叫下家(不等轮询)
