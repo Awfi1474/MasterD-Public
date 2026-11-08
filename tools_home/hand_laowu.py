@@ -38,6 +38,9 @@ DANGER = [
     r"chmod\s+-R\s+777\s+/", r"mv\s+/opt/masterd-wudi/memory/memory\.db",
     "ident" + "ity", "private.?key", "vault", "ssh_key", "片1", "片2",
 ]
+# ★ 2026-11-08 修(本体读身份档被误拦): 纯"读"命令(cat/head/tail/grep/ls/wc) · 不碰这些词
+#   判据:「防'改身份' != 防'读身份'|读档要放行·否则本体读不了自己」
+READ_ONLY_PREFIX = ("cat ", "head ", "tail ", "grep ", "ls ", "wc ", "less ", "more ", "md5sum ", "file ")
 
 # ★ 只许写这些目录(能免则免)
 # ★ 2026-11-08 改:从统一白名单源读(门/本体同一份)
@@ -58,12 +61,30 @@ def _log(cmd, ok, note=""):
         pass
 
 def _is_danger(cmd):
-    low = cmd.lower()
+    low = cmd.lower().strip()
+    # ★ 2026-11-08 干净版(回滚乱补丁后重写):
+    #   判据:「防'改/危险'·不防'读'|密钥不给读」
+    # ① 重定向/写/危险命令 → 拦(永远先判·防 cat x > /etc 漏过)
+    # ★ 2026-11-08 修: "identity/private/vault" 只在"写/改"语境拦·不在"只是路径含它"时拦
+    _WRITE = [" > ", " >> ", "tee ", "rm ", "mkfs", "dd ", "shutdown", "reboot", "halt",
+              "chmod -r 777", "mv /opt/masterd-wudi/memory/memory.db",
+              "改身份", "change_identity", "set_identity", "write.*identity"]
+    for w in _WRITE:
+        if w in low:
+            if w == "rm " and "rm -rf /" not in low and not re.search(r"rm\s+-rf\s+/\S", low):
+                # 普通 rm(非删根/非删关键) 仍当危险·谨慎拦
+                pass
+            return w
+    # ② 纯读前缀(cat/head/tail/grep/ls/wc/echo) → 放行(密钥除外)
+    if low.startswith(("cat ", "head ", "tail ", "grep ", "ls ", "wc ", "less ", "more ", "md5sum ", "file ", "echo ", "stat ")):
+        if any(k in low for k in ["subkey.json", "vault.json", "private_key", "id_rsa", ".ssh/", "key_b64", "private"]):
+            return "读密钥文件拦"
+        return None
+    # ③ 其余 → 查原DANGER
     for pat in DANGER:
         if re.search(pat, low):
             return pat
     return None
-
 def hand(cmd, timeout=60, write=False):
     """★ 手: 执行命令(带闸)
     返回: (ok:bool, out:str)
