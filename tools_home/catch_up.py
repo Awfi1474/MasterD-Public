@@ -44,6 +44,11 @@ def jl(p):
         except Exception: pass
     return out
 
+def _ok_ts(t):
+    # ★ 2026-11-08 修：隔离件/坏件的 ts="t" 会被字符串比较当"最新"，永远捞出来
+    #   判据:「坏时间戳 > 任何真时间戳」→ 必须先过滤再比
+    return isinstance(t, str) and len(t) >= 16 and t[:4].isdigit()
+
 def load_cursor():
     try: return json.load(open(CURSOR))
     except Exception: return {"last_ts": None, "marked_at": None}
@@ -59,7 +64,7 @@ def gap():
     if not last:
         # ★ 第一次: 从"最近 12 小时"开始（保守·不灌爆）
         last = (now() - datetime.timedelta(hours=12)).strftime("%Y-%m-%dT%H:%M:%S")
-    hit = [d for d in inbox if str(d.get("ts", "")) > last]
+    hit = [d for d in inbox if _ok_ts(d.get("ts", "")) and str(d.get("ts", "")) > last]
     # ★ 只留"该看"的（提到我 / 给我的 / 含判据）
     mine = [d for d in hit if any(k in str(d.get("message", "")) for k in ["老五", "醫療", "阿診", "全体", "全家", "@all"])]
     print("★ 空档: " + str(last) + " → " + ts())
@@ -91,7 +96,7 @@ def read():
 def mark():
     """★ 记游标（下次从这开始）"""
     inbox = jl(INBOX)
-    last = max((str(d.get("ts", "")) for d in inbox), default=ts())
+    last = max((str(d.get("ts", "")) for d in inbox if _ok_ts(d.get("ts", ""))), default=ts())
     save_cursor(last)
     print("  ✅ 游标已记: " + last)
     return 1
