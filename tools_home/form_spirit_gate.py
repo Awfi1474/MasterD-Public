@@ -62,27 +62,31 @@ def spirit_check(claim_id):
 
 
 def query_judge(text):
-    """★ 焊进必经路:遇事先查判据(judge_bus find)·查了=用·化率才涨"""
+    """★ 遇事先查判据(修:用判据库自己的领域词·治'查不准')"""
     try:
-        import judge_bus as jb
-        # 取text里的关键n-gram·查判据
+        import sys as _s, re as _re, collections as _c
+        if "/opt/masterd-wudi/tools" not in _s.path: _s.path.insert(0, "/opt/masterd-wudi/tools")
+        import judge_bus as _jb
+        # 1. 从判据库取"领域词"(title高频2-4字)
+        crits = _jb.load_criteria()
+        wc = _c.Counter()
+        for _c0 in crits:
+            for _w in _re.findall(r'[\u4e00-\u9fff]{2,4}', _c0.get("title","")):
+                wc[_w] += 1
+        domain = [w for w,_n in wc.most_common(40)]
+        # 2. 遇事text里的人有词 + 领域词·都查
+        kws = _re.findall(r'[\u4e00-\u9fff]{2,4}', str(text))[:8] + domain
         hits = []
-        import re
-        # ★ 双路:①n-gram切 ②整句当关键词(判据title含短句)
-        # ★ judge_bus.find=子串匹配·切2-4字(别过长)
-        kws = re.findall(r'[\u4e00-\u9fff]{2,4}', text)[:10]
         for kw in kws:
-            h = jb.find(kw)
+            h = _jb.find(kw)
             if h: hits += h
-        # 去重
-        seen = set(); uniq = []
+        seen=set(); out=[]
         for h in hits:
-            t = h.get("title", "")
-            if t not in seen:
-                seen.add(t); uniq.append(h)
-        return uniq[:5]
-    except Exception as e:
-        return [{"title": "查询失败:" + str(e)[:40]}]
+            t=h.get("title","")
+            if t not in seen: seen.add(t); out.append(t)
+        return out[:5]
+    except Exception:
+        return []
 
 def main():
     a = sys.argv[1:]
