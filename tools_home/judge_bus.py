@@ -57,7 +57,7 @@ def load_criteria():
     try:
         c = sqlite3.connect(DB, timeout=10)
         for kind, title, body in c.execute(
-                "SELECT kind,title,body FROM memories WHERE kind IN ('判据','教训','真病') ORDER BY id DESC"):
+                "SELECT kind,title,body FROM memories WHERE kind IN ('判据','教训','真病','criterion','judge','constitution') ORDER BY id DESC"):
             out.append({"kind": kind, "title": str(title), "body": str(body or "")[:200]})
         c.close()
     except Exception:

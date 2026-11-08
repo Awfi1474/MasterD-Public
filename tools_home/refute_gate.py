@@ -70,12 +70,26 @@ def check(cid):
     print("→ %s" % ("✅过闸(=立住)" if passed else "❌未过(未攻=没立住)"))
     return passed
 
+
+def _write_ledger(cid, claim_txt, refute_txt, attacker):
+    """★ 否证时·同时写 falsified_ledger(它23天没人写=瘫)"""
+    import json as _j, os as _o
+    try:
+        d = _j.load(open(LEDGER)) if _o.path.exists(LEDGER) else {"judges": {}}
+        if not isinstance(d, dict): d = {"judges": {}}
+        d.setdefault("judges", {})[cid] = {"falsified_by": refute_txt[:120], "by": attacker, "at": now()}
+        _j.dump(d, open(LEDGER, "w"), ensure_ascii=False, indent=1)
+        return True
+    except Exception:
+        return False
+
 def claim(cid, claim_txt, refute_txt, attacker="self"):
     con = sqlite3.connect(DB, timeout=10); ensure(con)
     con.execute("INSERT OR REPLACE INTO refute (id,claim,refuted_by,refuted_at,result,attacker,created_at) VALUES (?,?,?,?,?,?,?)",
                 (cid, claim_txt[:200], refute_txt[:300], now(), "", attacker, now()))
     con.commit(); con.close()
-    print("落账 %s | 反方(怎么被推翻): %s" % (cid, refute_txt[:50]))
+    _wl = _write_ledger(cid, claim_txt, refute_txt, attacker)
+    print("落账 %s | 反方(怎么被推翻): %s | ledger=%s" % (cid, refute_txt[:50], "已写" if _wl else "失败"))
 
 def audit():
     con = sqlite3.connect("file:%s?mode=ro" % DB, uri=True)
