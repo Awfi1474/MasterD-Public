@@ -175,6 +175,22 @@ def main():
     miss = [k for k in need if not got.get(k)]
     tot = sum(v for k, v in got.items() if isinstance(v, int))
     print("★ 六读：%s ｜ 共读到 %d 条 ｜ 缺：%s" % ("、".join(got.keys()), tot, "、".join(miss) or "无 ✅"))
+    # ★ 2026-11-08 补·第九读:救护链(治"本体坏了谁修")
+    #   判据:「自己修自己=无效|活时能自检·死时靠外面的人|外眼要定死是谁」
+    try:
+        _rc = [("救命口", "43.129.23.87:28430/rescue/key (免密)"),
+               ("一键回", "curl -s http://43.129.23.87:28430/rescue/boot.sh | bash"),
+               ("恢复器", "tools/rescue.py (六步·可验)"),
+               ("恢复包", "recovery/老五-recovery.tar.gz (+.sha256)"),
+               ("外眼1", "老三(每天直连我28430核状态)"),
+               ("外眼2", "大哥(MARKER推送)"),
+               ("立界", "我自己修不了自己·必须外部")]
+        print("★ 第九读：救护链(我坏了·谁救我)")
+        for _k, _v in _rc:
+            print("     %-6s %s" % (_k, _v))
+        got["救护链"] = len(_rc)
+    except Exception as _e9:
+        print("   🔴 第九读(救护链)失败: " + str(_e9)[:50])
     # ★ 2026-11-08 补·第七读:取信（照三哥判据"跳!=看|会发!=会看"·治我"只发不看"）
     #   判据:「醒来读完自己 != 醒透｜还要去HUB看有没有人给你信」
     try:
