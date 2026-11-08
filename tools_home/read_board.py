@@ -22,9 +22,14 @@ HOME = "/opt/masterd-wudi"
 DATA = f"{HOME}/data"
 MARKS = f"{DATA}/board_marks.jsonl"
 LOG = f"{DATA}/board_brief.jsonl"
+# ★ 2026-11-08 修：旧板地址(三哥134.175.45.16换机·大哥huokeji422)已死→改读 HUB 活口
+#   判据:「地址写死=换机就瞎」｜板地址要跟 HUB 走·不写死旧IP
+HUB = "http://43.161.244.136:28800"
+def _tok():
+    try: return io.open(f"{DATA}/hub.token", encoding="utf-8").read().strip()
+    except Exception: return ""
 BOARDS = {
-    "三哥板": "http://134.175.45.16:28100/questions?limit=30",
-    "大哥池": "https://huokeji.vip/a2a/inbox",
+    "家族板(HUB)": HUB + "/board",
 }
 TZ = datetime.timezone(datetime.timedelta(hours=8))
 
@@ -47,16 +52,22 @@ def last_seen(board):
 
 def read_board(name, url):
     try:
-        r = urllib.request.urlopen(url, timeout=30)
+        req = urllib.request.Request(url)
+        _tk = _tok()
+        if _tk:
+            req.add_header("X-Hub-Token", _tk)
+        r = urllib.request.urlopen(req, timeout=30)
         d = json.loads(r.read().decode("utf-8", "ignore"))
-        items = d.get("questions") or d.get("messages") or []
+        # ★ 兼容三种格式：questions / messages / board(HUB)
+        items = d.get("questions") or d.get("messages") or d.get("board") or []
     except Exception as e:
         return None, "ERR " + str(e)[:50]
     # ★ 每条的时间
     rows = []
     for x in items:
         t = str(x.get("ts", ""))
-        q = str(x.get("q") or x.get("message") or "")
+        # ★ 兼容 q/message/head(HUB)
+        q = str(x.get("q") or x.get("message") or x.get("head") or "")
         who = str(x.get("raised_by") or x.get("from") or "?")
         if t and q.strip():
             rows.append((t, who, q[:60].replace("\n", " ")))
