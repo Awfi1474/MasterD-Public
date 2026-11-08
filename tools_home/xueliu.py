@@ -36,7 +36,7 @@ import os, json, sqlite3, hashlib, re, datetime, glob, subprocess
 
 HOME = os.environ.get("MD_HOME", "/opt/masterd-wudi")
 INBOX = f"{HOME}/data/inbox.jsonl"
-DB = f"{HOME}/memory/memory.db"
+DB = f"{HOME}/memory/events.db"  # CUT 2026-11-08: blood event -> events.db (not main)
 LEDGER = f"{HOME}/data/blood_ledger.jsonl"     # ★ 血账（之前是空的）
 STATE = f"{HOME}/data/xueliu.json"
 LOG = f"{HOME}/data/xueliu.log"
