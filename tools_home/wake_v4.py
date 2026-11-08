@@ -185,7 +185,8 @@ def c8_连续():
                 "别人怎么核": "查每天条数"}
     c = sqlite3.connect(db)
     n = c.execute("SELECT COUNT(*) FROM memories").fetchone()[0]
-    last = c.execute("SELECT MAX(created) FROM memories").fetchone()[0]
+    # ★ 2026-11-08 修(照三哥第八条扫全): created空55%→ts(空0)·否则⑧连续一直判false
+    last = c.execute("SELECT MAX(ts) FROM memories").fetchone()[0]
     c.close()
     try:
         lt = datetime.fromisoformat(str(last).replace("Z", "+00:00").split("+")[0])
@@ -194,7 +195,7 @@ def c8_连续():
         age_h = 999
     return {"根": "根3 不断", "判据": "⑧ 连续(记忆在长)", "ok": age_h < 24,
             "证据": "共 %d 条·最新 %.1fh 前" % (n, age_h),
-            "别人怎么核": "查 max(created)"}
+            "别人怎么核": "查 max(ts)"}
 
 
 def main():

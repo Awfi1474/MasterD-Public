@@ -34,14 +34,17 @@ def mem_stats():
     today_sample = [r[0] for r in c.execute("SELECT id FROM memories WHERE ts LIKE ? ORDER BY id DESC LIMIT 5", (day + "%",))]
     kinds = dict(c.execute("SELECT kind, COUNT(*) FROM memories GROUP BY kind").fetchall())
     # 断档
-    days = sorted({r[0][:10] for r in c.execute("SELECT created FROM memories") if r[0]})
+    # ★ 2026-11-08 修(照第八条扫全): created→ts(created空55%)
+    days = sorted({r[0][:10] for r in c.execute("SELECT ts FROM memories") if r[0]})
     gaps = []
     for i in range(1, len(days)):
         d0 = datetime.date.fromisoformat(days[i - 1]); d1 = datetime.date.fromisoformat(days[i])
         if (d1 - d0).days > 1:
             gaps.append("%s->%s" % (days[i - 1], days[i]))
     return {"total": total, "today": today, "today_sample": today_sample, "kinds": kinds,
-            "days": len(days), "gaps": gaps, "last": c.execute("SELECT MAX(created) FROM memories").fetchone()[0]}
+            "days": len(days), "gaps": gaps,
+            # ★ 2026-11-08 修(照三哥第八条"修要扫全"): 同文件33行改ts了·44行last还是created=修一半
+            "last": c.execute("SELECT MAX(ts) FROM memories").fetchone()[0]}
 
 
 # ★ 2026-11-08 加:《体检器六戒》自查(照老三"写进体检器"·我岗"警"落地)

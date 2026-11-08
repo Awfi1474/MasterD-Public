@@ -64,7 +64,7 @@ def acu_memory():
     for p in ["/opt/masterd-wudi/memory/memory.db", "/app/workspace/family/memory.db"]:
         if os.path.exists(p):
             c = sqlite3.connect(p); n = c.execute("SELECT COUNT(*) FROM memories").fetchone()[0]
-            last = c.execute("SELECT MAX(created) FROM memories").fetchone()[0]; c.close()
+            last = c.execute("SELECT MAX(ts) FROM memories").fetchone()[0]; c.close()  # 2026-11-08 修:created空55%→ts
             return {"ok": n > 100, "证据": "%d 条·最新 %s" % (n, str(last)[:19])}
     return {"ok": False, "证据": "无库"}
 
