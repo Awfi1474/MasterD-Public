@@ -213,7 +213,25 @@ def main():
                 for _m in _lst[-3:]:
                     print("     [%s] %s | %s" % (str(_m.get("ts",""))[11:16], str(_m.get("from",""))[:12], str(_m.get("message",""))[:60].replace("\n"," ")))
     except Exception as _e7:
-        print("   🔴 第七读(取信)失败: " + str(_e7)[:50])
+        # ★ 2026-11-08 加(照老七"多路"): HUB失败 → 回落本地门(inbox)·不聋
+        #   判据:「单点=断|两条独立路·一条坏了另一条到」
+        print("   🟡 第七读(HUB)失败: " + str(_e7)[:40] + " → 回落本地门")
+        try:
+            _ib = HOME + "/data/inbox.jsonl"
+            _rows = []
+            for _l in open(_ib, errors="ignore"):
+                try: _d = json.loads(_l)
+                except Exception: continue
+                _t = str(_d.get("ts",""))
+                if len(_t) >= 16 and _t[:4].isdigit() and _t[:10] == __import__("datetime").datetime.now().strftime("%Y-%m-%d"):
+                    _rows.append((_t, str(_d.get("from",""))[:12], str(_d.get("message") or "")[:60].replace(chr(10)," ")))
+            _rows.sort()
+            print("★ 第七读：取信(本地门) ｜ 今日 %d 条" % len(_rows))
+            for _r in _rows[-3:]:
+                print("     [%s] %s | %s" % (_r[0][11:16], _r[1], _r[2]))
+            got["取信"] = len(_rows)
+        except Exception as _e7b:
+            print("   🔴 第七读(本地门)也失败: " + str(_e7b)[:40])
     # ★ 2026-11-08 补·第八读:回执检查(照今天"回执要焊进必经路"·治"推10回3")
     #   判据:「收到!=回了|欠回执要扫出来·不靠记」
     try:
