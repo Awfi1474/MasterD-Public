@@ -44,7 +44,14 @@ def main():
     time.sleep(6)
     after = 0
     if os.path.exists(ONCE): after = sum(1 for _ in open(ONCE))
-    if after > before:
+    # ★ 2026-11-08 修(本体诊断出的洞): 只看"增量"会被清空骗→加"最新一条时间戳也要新"
+    _fresh = False
+    try:
+        _last = open(ONCE).read().strip().splitlines()[-1]
+        _lt = json.loads(_last).get("ts","")
+        _fresh = _lt >= ts[:19]  # 最新一条不比投信时间早=是这次新写的
+    except Exception: _fresh = False
+    if after > before or _fresh:
         print("  ② 本体真想了: body_once %d→%d ✅ 门推本体=通" % (before, after))
         print("     证据:", open(ONCE).read().strip().splitlines()[-1][:120])
         return 0

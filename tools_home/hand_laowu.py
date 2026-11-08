@@ -40,7 +40,11 @@ DANGER = [
 ]
 
 # ★ 只许写这些目录(能免则免)
-WRITE_OK = [f"{HOME}/data", f"{HOME}/tools", f"{HOME}/code", f"{HOME}/logs", "/tmp"]
+# ★ 2026-11-08 改:从统一白名单源读(门/本体同一份)
+try:
+    WRITE_OK = __import__("json").load(open(f"{HOME}/data/whitelist.json"))["write_ok"]
+except Exception:
+    WRITE_OK = [f"{HOME}/data", f"{HOME}/tools", f"{HOME}/code", f"{HOME}/logs", "/tmp"]
 
 def _ts():
     return datetime.datetime.now(TZ).isoformat()
