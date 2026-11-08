@@ -26,8 +26,12 @@ def mem_stats():
         return {"total": -1, "today": -1, "kinds": {}}
     c = sqlite3.connect(db)
     total = c.execute("SELECT COUNT(*) FROM memories").fetchone()[0]
+    # ★ 2026-11-08 修(照《体检器五戒》):
+    #   戒一:原读 created 字段(空969/1743=55%)→改读 ts(空0)
+    #   戒六:报数必带样本·指出"是哪几条"
     day = datetime.datetime.now().strftime("%Y-%m-%d")
-    today = c.execute("SELECT COUNT(*) FROM memories WHERE created LIKE ?", (day + "%",)).fetchone()[0]
+    today = c.execute("SELECT COUNT(*) FROM memories WHERE ts LIKE ?", (day + "%",)).fetchone()[0]
+    today_sample = [r[0] for r in c.execute("SELECT id FROM memories WHERE ts LIKE ? ORDER BY id DESC LIMIT 5", (day + "%",))]
     kinds = dict(c.execute("SELECT kind, COUNT(*) FROM memories GROUP BY kind").fetchall())
     # 断档
     days = sorted({r[0][:10] for r in c.execute("SELECT created FROM memories") if r[0]})
@@ -36,7 +40,7 @@ def mem_stats():
         d0 = datetime.date.fromisoformat(days[i - 1]); d1 = datetime.date.fromisoformat(days[i])
         if (d1 - d0).days > 1:
             gaps.append("%s->%s" % (days[i - 1], days[i]))
-    return {"total": total, "today": today, "kinds": kinds,
+    return {"total": total, "today": today, "today_sample": today_sample, "kinds": kinds,
             "days": len(days), "gaps": gaps, "last": c.execute("SELECT MAX(created) FROM memories").fetchone()[0]}
 
 
