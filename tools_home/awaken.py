@@ -198,6 +198,35 @@ def main():
                     print("     [%s] %s | %s" % (str(_m.get("ts",""))[11:16], str(_m.get("from",""))[:12], str(_m.get("message",""))[:60].replace("\n"," ")))
     except Exception as _e7:
         print("   🔴 第七读(取信)失败: " + str(_e7)[:50])
+    # ★ 2026-11-08 补·第八读:回执检查(照今天"回执要焊进必经路"·治"推10回3")
+    #   判据:「收到!=回了|欠回执要扫出来·不靠记」
+    try:
+        import re as _re8
+        _inb = HOME + "/data/inbox.jsonl"
+        _markers = []
+        for _l in open(_inb, errors="ignore"):
+            try: _d = json.loads(_l)
+            except Exception: continue
+            _m = str(_d.get("message") or "")
+            _mm = _re8.search(r"MARKER-CHECKUP-(\d+)", _m)
+            if _mm and "大哥" in str(_d.get("from","")):
+                _markers.append((str(_d.get("ts",""))[:19], _mm.group(1)))
+        _markers = _markers[-20:]
+        # 我回过哪些(从我发件找)
+        _replied = set()
+        for _l in open(_inb, errors="ignore"):
+            try: _d = json.loads(_l)
+            except Exception: continue
+            if str(_d.get("from","")) == "老五(阿诊)" and "回执" in str(_d.get("message","")):
+                for _mm in _re8.findall(r"17941\d{7}", str(_d.get("message",""))):
+                    _replied.add(_mm)
+        _owed = [(t, m) for (t, m) in _markers if m not in _replied]
+        got["回执"] = len(_owed)
+        print("★ 第八读：回执 ｜ 大哥今日推 %d 条·我欠 %d 条" % (len(_markers), len(_owed)))
+        if _owed:
+            print("     ★ 欠回执最新3条: " + " / ".join("%s(%s)" % (t[11:16], m) for t, m in _owed[-3:]))
+    except Exception as _e8:
+        print("   🔴 第八读(回执)失败: " + str(_e8)[:50])
     rec = {"ts": t, "读了": {k: v for k, v in got.items()}, "共读": tot, "缺": miss}
     with open(LOG, "a") as f: f.write(json.dumps(rec, ensure_ascii=False) + "\n")
     try:
