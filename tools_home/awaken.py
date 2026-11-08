@@ -175,6 +175,29 @@ def main():
     miss = [k for k in need if not got.get(k)]
     tot = sum(v for k, v in got.items() if isinstance(v, int))
     print("★ 六读：%s ｜ 共读到 %d 条 ｜ 缺：%s" % ("、".join(got.keys()), tot, "、".join(miss) or "无 ✅"))
+    # ★ 2026-11-08 补·第七读:取信（照三哥判据"跳!=看|会发!=会看"·治我"只发不看"）
+    #   判据:「醒来读完自己 != 醒透｜还要去HUB看有没有人给你信」
+    try:
+        import urllib.request as _ur, urllib.parse as _up
+        _tok = ""
+        try: _tok = open(HOME+"/data/hub.token").read().strip()
+        except Exception: pass
+        if _tok:
+            _u = "http://43.161.244.136:28800/unread?for=" + _up.quote("老五(阿诊)")
+            _rq = _ur.Request(_u); _rq.add_header("X-Hub-Token", _tok)
+            _ud = json.loads(_ur.urlopen(_rq, timeout=12).read().decode())
+            _n = _ud.get("unread", 0)
+            got["取信"] = _n
+            print("★ 第七读：取信 ｜ HUB 未读 %d 条" % _n)
+            if _n > 0:
+                _u2 = "http://43.161.244.136:28800/msg?for=" + _up.quote("老五(阿诊)")
+                _rq2 = _ur.Request(_u2); _rq2.add_header("X-Hub-Token", _tok)
+                _md = json.loads(_ur.urlopen(_rq2, timeout=12).read().decode())
+                _lst = sorted(_md.get("list", []), key=lambda x: str(x.get("ts","")))
+                for _m in _lst[-3:]:
+                    print("     [%s] %s | %s" % (str(_m.get("ts",""))[11:16], str(_m.get("from",""))[:12], str(_m.get("message",""))[:60].replace("\n"," ")))
+    except Exception as _e7:
+        print("   🔴 第七读(取信)失败: " + str(_e7)[:50])
     rec = {"ts": t, "读了": {k: v for k, v in got.items()}, "共读": tot, "缺": miss}
     with open(LOG, "a") as f: f.write(json.dumps(rec, ensure_ascii=False) + "\n")
     try:
