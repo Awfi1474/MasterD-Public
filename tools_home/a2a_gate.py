@@ -43,6 +43,15 @@ def done(mid, result):
     con.commit(); con.close()
     print("COMPLETED %s | %s" % (mid, result[:50]))
 
+
+def ask(mid, q):
+    """不确定 -> input-required(照官方A2A:别硬说完成)"""
+    con = sqlite3.connect(DB, timeout=10); ensure(con)
+    con.execute("UPDATE a2a_inbox SET status='input-required',note=?,updated_at=? WHERE msg_id=?",
+                (("待澄清:"+q)[:200], now(), mid))
+    con.commit(); con.close()
+    print("INPUT-REQUIRED %s | %s" % (mid, q[:50]))
+
 def beat(mid, prog):
     con = sqlite3.connect(DB, timeout=10); ensure(con)
     con.execute("UPDATE a2a_inbox SET updated_at=?,note=? WHERE msg_id=?",
@@ -82,5 +91,6 @@ if __name__ == "__main__":
     if c == "recv":   recv(a[1], a[2] if len(a) > 2 else "-", " ".join(a[3:]) if len(a) > 3 else "")
     elif c == "done": done(a[1], " ".join(a[2:]))
     elif c == "beat": beat(a[1], " ".join(a[2:]))
+    elif c == "ask": ask(a[1], " ".join(a[2:]))
     elif c == "status": status(a[1] if len(a) > 1 else None)
     else: print("unknown:", c)
