@@ -33,7 +33,9 @@ def rec_memory():
         return {"ok": False, "why": "no db"}
     c = sqlite3.connect(db)
     n = c.execute("SELECT COUNT(*) FROM memories").fetchone()[0]
-    last = c.execute("SELECT MAX(created) FROM memories").fetchone()[0]
+    # ★ 2026-11-08 修(照《六戒》戒一·治"修一半"): 原读 created(空969/1743=55%)·改读 ts(空0)
+    #   判据:「修一处·要问还有没有别处也读这个坏字段」
+    last = c.execute("SELECT MAX(ts) FROM memories").fetchone()[0]
     c.close()
     if last and "+00:00" in str(last):
         last = str(last).replace("+00:00", "Z")
