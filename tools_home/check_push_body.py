@@ -41,7 +41,7 @@ def main():
         print("  ① 投信:", r[:100])
     except Exception as e:
         print("  🔴 投信失败:", str(e)[:80]); return 1
-    time.sleep(6)
+    time.sleep(20)  # ★ 2026-11-08 修:6秒不够(本体LLM要想几秒)→20秒
     after = 0
     if os.path.exists(ONCE): after = sum(1 for _ in open(ONCE))
     # ★ 2026-11-08 修(本体诊断出的洞): 只看"增量"会被清空骗→加"最新一条时间戳也要新"
