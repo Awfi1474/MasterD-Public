@@ -44,6 +44,34 @@ def mem_stats():
             "days": len(days), "gaps": gaps, "last": c.execute("SELECT MAX(created) FROM memories").fetchone()[0]}
 
 
+# ★ 2026-11-08 加:《体检器六戒》自查(照老三"写进体检器"·我岗"警"落地)
+#   判据:「报告先自过戒|假绿出不来·因为出口就卡住了」
+def six_precepts(db):
+    """体检器出报告前·先自过六戒·返回(过没,明细)"""
+    import sqlite3 as _sq
+    out = {}
+    try:
+        c = _sq.connect(db)
+        tot = c.execute("SELECT COUNT(*) FROM memories").fetchone()[0] or 1
+        # 戒一:读数先验字段(读的字段真有值吗)
+        nulls = c.execute("SELECT COUNT(*) FROM memories WHERE ts IS NULL OR ts=''").fetchone()[0]
+        out["戒一(验字段)"] = ("✅ ts空%d/%d" % (nulls, tot)) if nulls==0 else ("🔴 ts空%d条" % nulls)
+        # 戒二:时区(ts是否带偏移)
+        tz = c.execute("SELECT ts FROM memories ORDER BY id DESC LIMIT 1").fetchone()
+        ok_tz = bool(tz and (tz[0].endswith("+08:00") or tz[0].endswith("+00:00")))
+        out["戒二(时区)"] = "✅ ts带偏移" if ok_tz else "🔴 ts无偏移"
+        # 戒三:全绿+全0可疑
+        day = datetime.datetime.now().strftime("%Y-%m-%d")
+        today = c.execute("SELECT COUNT(*) FROM memories WHERE ts LIKE ?", (day+"%",)).fetchone()[0]
+        out["戒三(全0疑)"] = ("✅ 今日%d条(非0)" % today) if today>0 else "🟡 今日0条·可疑"
+        # 戒六:报数带样本
+        samp = [r[0] for r in c.execute("SELECT id FROM memories WHERE ts LIKE ? ORDER BY id DESC LIMIT 5",(day+"%",))]
+        out["戒六(带样本)"] = "✅ 今日样本id=%s" % samp
+    except Exception as e:
+        out["异常"] = str(e)[:60]
+    passed = all(v.startswith("✅") for k,v in out.items() if k!="异常")
+    return passed, out
+
 def beats():
     checks = [
         ("沙箱报到", HOME + "/data/home_report.json", 900),
@@ -103,6 +131,15 @@ def main():
     for k, v in b.items():
         print("    %-10s %s age=%ss" % (k, "OK" if v["ok"] else "STOP", v["age"]))
     print("  消化率:", json.dumps(rep["digestion"], ensure_ascii=False))
+    # ★ 2026-11-08 加:六戒自查(照老三·我岗"警"落地)
+    try:
+        _ok, _sp = six_precepts(os.path.join(HOME, "memory", "memory.db"))
+        print("  《六戒》自查:", "全过✅" if _ok else "有项🟡🔴")
+        for _k, _v in _sp.items():
+            print("    %-14s %s" % (_k, _v))
+        rep["six_precepts"] = _sp
+    except Exception as _e:
+        print("  六戒自查失败:", str(_e)[:60])
     return rep
 
 
