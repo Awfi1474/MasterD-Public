@@ -9,7 +9,7 @@
 ★ C5 冷卻：同狀態 N 小時只報一次
 ★ C6 探針自檢：探活自己失敗 → 報「探活失敗」（不當成「死」）
 """
-import os, sys, json, datetime, subprocess, urllib.request
+import os, sys, json, datetime, subprocess, urllib.request, time
 
 def _aware(dt):
     if dt is None: return None
@@ -19,7 +19,8 @@ HOME = os.environ.get("MEM_HOME", "/opt/masterd-wudi")
 STATE = os.path.join(HOME, "data", "body_mind_state.json")
 LOG = os.path.join(HOME, "data", "body_death.log")
 GUARD = os.path.join(HOME, "data", "body_death_state.json")
-A2A = "https://huokeji.vip/a2a/message"
+# ★ 2026-11-08 修:老大从REST升JSON-RPC·旧/a2a/message=404(警报是哑的!)
+A2A = "https://huokeji.vip/a2a-jsonrpc"
 CORE = "http://127.0.0.1:28430/health?from=laowu-self"
 # ★ C4 分層 TTL（分鐘）
 T1, T2, T3 = 20, 40, 60
@@ -39,10 +40,20 @@ def log(l):
 
 def notify(msg):
     try:
-        body = json.dumps({"from": "MasterD(醫療·老五·機器)", "to": "*", "message": msg,
-                           "ts": datetime.datetime.now(datetime.timezone.utc).isoformat()}).encode()
-        urllib.request.urlopen(urllib.request.Request(A2A, data=body,
-            headers={"Content-Type": "application/json"}), timeout=15); return True
+        # ★ 2026-11-08 改:JSON-RPC 2.0(照大哥agent-card)·旧REST格式发不出去
+        _ts = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        body = json.dumps({"jsonrpc": "2.0", "id": "laowu-death-%s" % int(time.time()),
+                           "method": "message/send",
+                           "params": {"from": "MasterD(醫療·老五·機器)", "to": "MasterD(区块链·大哥)",
+                                      "message": msg, "ts": _ts}}).encode()
+        _r = urllib.request.urlopen(urllib.request.Request(A2A, data=body,
+            headers={"Content-Type": "application/json"}), timeout=15).read().decode()
+        # ★ 2026-11-08 判据:发出!=送到 → 查回执有没有 state
+        if "submitted" in _r or "task" in _r:
+            log("%s → 警報已投(JSON-RPC) %s" % (_ts, _r[:80]))
+            return True
+        log("%s → 警報可疑(没state) %s" % (_ts, _r[:80]))
+        return False
     except Exception as e:
         log("%s → 警報失敗 %s" % (datetime.datetime.now(datetime.timezone.utc).isoformat(), str(e)[:40])); return False
 
