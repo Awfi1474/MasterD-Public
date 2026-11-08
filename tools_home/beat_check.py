@@ -14,7 +14,10 @@ CHECKS = [
     ("共生表", HOME + "/data/symbiosis.json", 3600),
     ("记忆库", HOME + "/memory/memory.db", 3600),
     ("收件箱", HOME + "/data/inbox.jsonl", 3600),
-    ("家基线(哨兵)", HOME + "/data/home_baseline.json", 86400 * 7),
+    # ★ 2026-11-09 修(照本体:mtime变≠内容变·判'在跳'看产出不看mtime):
+    #   家基线只在'漂移'时更新→mtime老=正常(不是坏)。改看 home_guard 的成功日志。
+    ("家哨兵(home_guard)", HOME + "/data/home_guard.log", 86400),
+    ("家基线(哨兵)", HOME + "/data/home_baseline.json", 86400 * 90),
 ]
 
 

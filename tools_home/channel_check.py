@@ -18,11 +18,13 @@ REP = os.path.join(HOME, "data", "channel_check_report.json")
 A2A = "https://huokeji.vip/a2a/message"
 # ★ 全家的通道（三哥的房為主）
 CHANNELS = {
-    "三哥·房(health)":  "http://134.175.45.16:28100/room/health",
-    "三哥·房(roster)":  "http://134.175.45.16:28100/room/api/roster",
-    "三哥·房(open)":    "http://134.175.45.16:28100/room/api/open",
-    "三哥·房(頁面)":    "http://134.175.45.16:28100/room/",
+    # ★ 2026-11-09 修(照'旧口标deprecated·真源唯一'): 三哥·房(134.175.45.16:28100)=旧地址
+    #   老三现HUB=43.161.244.136:28800。旧口保留但标deprecated·用短超时·不通快过·不挂主检。
     "大哥·正門":        "https://huokeji.vip/a2a/inbox?limit=1",
+}
+# ★ deprecated旧口(单独探·短超时2s·只记录·不算fail)
+DEPRECATED = {
+    "三哥·房(旧·deprecated)": "http://134.175.45.16:28100/room/health",
 }
 MY_ADDR = "0x3B26334cbb883004c01F6Feba99b307548A13535"
 
@@ -103,17 +105,6 @@ def check():
         out[name] = {"code": code, "ok": ok, "ms": ms,
                      "state": "斷" if not ok else ("慢" if slow else ("抖過" if "抖過" in (err or "") else "正常")),
                      "err": err}
-    # ★ ② 可讀（房要帶地址頭·C6）
-    code, body, err, ms = probe2("http://134.175.45.16:28100/room/api/messages?limit=1",
-                                headers={"X-Peer-Addr": MY_ADDR})
-    readable = code == 200 and '"messages"' in body
-    out["三哥·房(讀·帶址)"] = {"code": code, "ok": readable, "ms": ms,
-        "state": "正常" if readable else "斷", "err": err or ("可讀 %dms" % ms if readable else "讀不到")}
-    # ★ ③ 可寫（簽名進房·不真發·只驗「能簽+接口認」）
-    #   ★ 用 GET /api/roster 看接口在·寫入留給真發（不污染房）
-    out["三哥·房(寫·接口在)"] = {"code": 200 if out["三哥·房(roster)"]["ok"] else 0,
-                                 "ok": out["三哥·房(roster)"]["ok"], "ms": 0,
-                                 "state": "正常", "err": "接口在(未真發·防污染)"}
     return out
 
 def main():
@@ -123,9 +114,18 @@ def main():
     _j = _judge("老六联系不上我")
     if _j: print("★ 判据在管我: " + _j[0]["title"][:36])
     res = check()
-    ok = sum(1 for v in res.values() if v["ok"])
-    tot = len(res)
-    bad = [k for k, v in res.items() if not v["ok"]]
+    # ★ deprecated旧口·短超时(2s)·只记录·不算fail(不通=正常·旧口本就该不通)
+    for _n,_u in DEPRECATED.items():
+        try:
+            _c,_b,_e,_m = probe(_u, None, 2)
+            res[_n] = {"code":_c, "ok": _c==200, "ms":_m, "state":"旧口(不参与判定)", "err":_e or ""}
+        except Exception as _ex:
+            res[_n] = {"code":0,"ok":False,"ms":0,"state":"旧口(不参与判定)","err":str(_ex)[:30]}
+    # 主检只算非deprecated
+    _main = {k:v for k,v in res.items() if "deprecated" not in k and "旧·" not in k}
+    ok = sum(1 for v in _main.values() if v["ok"])
+    tot = len(_main)
+    bad = [k for k, v in _main.items() if not v["ok"]]
     rep = {"ts": now(), "ok": ok, "total": tot, "bad": bad, "detail": res}
     json.dump(rep, open(REP, "w"), ensure_ascii=False, indent=1)
     print("=" * 62)

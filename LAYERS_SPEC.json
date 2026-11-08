@@ -1,5 +1,5 @@
 {
-  "desc": "阿診記憶底線·M層新標准(2026-11-08·照老三全族裁)",
+  "desc": "阿診記憶底線·M層新標准(2026-11-08·照老三全族裁) + 补回must_have/floors(2026-11-09·治home_guard崩)",
   "scheme": "M0-M4 記憶層(區別於D-002數據流層與tiers消息層)",
   "layers": {
     "M0": "道·憲法(永遠全塞)",
@@ -8,5 +8,20 @@
     "M3": "事件(檢索·已分流events.db)",
     "M4": "臨時(用時才翻·★此M4=臨時·非D-002的L4核心/靈魂)"
   },
-  "note": "撞車不是名字撞·是語義撞。此M4=臨時·D-002的L4=核心/靈魂·兩者不同層·勿混。"
+  "note": "撞車不是名字撞·是語義撞。此M4=臨時·D-002的L4=核心/靈魂·兩者不同層·勿混。",
+  "must_have": [
+    "memory/SOUL.md",
+    "memory/IDENTITY.json",
+    "memory/MEDICAL_ROLE.md",
+    "memory/PROFESSION.md",
+    "memory/method/AZHEN-METHOD-20261010.md",
+    "memory/cases/CASES.jsonl",
+    "memory/MEMORY_ARCHIVE.md",
+    "memory/COGNITION-TEMPLATE.yaml"
+  ],
+  "floors": {
+    "cases": 20,
+    "method_files": 1,
+    "identity_files": 2
+  }
 }
