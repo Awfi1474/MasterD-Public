@@ -103,6 +103,16 @@ def sign(msg_id, judge, extra=None):
     return rec
 
 
+
+def ignore(msg_id, reason="测试/自动流水·非真VIP待办"):
+    """★ 标过时(不删·留证·不占待签)"""
+    with open(VIPLED, "a") as f:
+        f.write(json.dumps({"ts": ts(), "msg_id": str(msg_id), "kind": "ignored",
+                            "manual": False, "signed": False, "ok": True,
+                            "by": MY, "note": reason}, ensure_ascii=False) + "\n")
+    print("  IGNORED msg_id=%s | %s" % (msg_id, reason))
+    return True
+
 def reject_machine(msg_id, who="machine"):
     """★ 机器想签 VIP → 拒·记账（★ 不认它是签收）"""
     with open(VIPLED, "a") as f:
@@ -114,6 +124,7 @@ def reject_machine(msg_id, who="machine"):
 
 def main():
     cmd = sys.argv[1] if len(sys.argv) > 1 else "list"
+    # (ignore 走下面 elif)
     print("★ VIP 人签器  @ %s  cmd=%s" % (ts(), cmd))
     print("★ 铁律: VIP 不允许机器签收（董事长令）")
     print("★ 判据: 回执=机器回的 | 签收=人回的 | 人没回=没签收")
@@ -142,7 +153,9 @@ def main():
         print("  🔴 %s" % r["error"])
         return
 
-    if cmd == "verify":
+    if cmd == "ignore":
+        ignore(sys.argv[2], sys.argv[3] if len(sys.argv)>3 else "测试/自动流水")
+    elif cmd == "verify":
         mid = sys.argv[2] if len(sys.argv) > 2 else "?"
         ok = is_human_signed(mid)
         print("  msg_id=%s → VIP 人签: %s" % (mid, "✅ 是（human）" if ok else "🔴 没有（机器不算）"))
