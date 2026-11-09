@@ -62,7 +62,13 @@ def pull():
                 _st="failed"; _res="exec失败:"+str(e)[:60]
                 log("exec失败:"+str(e)[:50])
         else:
-            _st="failed"; _res="有action_type无cmd·明确退回"
+            # ★ 2026-11-09 修:exec型但无cmd(如"加字段"类)=该【认领working→推本体】·不"当场退"
+            _st="working"; _res="exec型无cmd(加字段类)·认领working·推本体处理"
+            try:
+                import subprocess as _sp2
+                _sp2.Popen(["python3","/opt/masterd-wudi/code/core_v2.py","--once"],
+                           stdout=_sp2.DEVNULL, stderr=_sp2.DEVNULL)
+            except Exception: pass
     else:
         # ★ 2026-11-09 修(认错):非exec型(如"加字段"任务)·该【认领working→推本体处理】·不"当场退"
         _st="working"; _res="非exec型task·已认领working·推本体处理(不误退)"

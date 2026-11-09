@@ -13,7 +13,7 @@ def build():
         rows=c.execute("select id,kind,substr(title,1,60) from memories where layer=? order by id limit 100",(lay,)).fetchall()
         layers[lay]=[{"id":r[0],"kind":r[1],"title":r[2]} for r in rows]
     tot=c.execute("select count(*) from memories").fetchone()[0]; c.close()
-    return {"pack_version":"1.0","owner_id":"lao5","owner":"MasterD(医疗·五弟)",
+    return {"pack_version":"3","owner_id":"lao5","owner":"MasterD(医疗·五弟)",
             "built_at":datetime.datetime.now().isoformat(),"layers_scope":["M0","M1","M2","M3","M4"],
             "entities":layers["M0"],"relations":layers["M1"],"layers":layers,"total":tot}
 

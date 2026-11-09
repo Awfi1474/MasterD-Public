@@ -1,59 +1,53 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""task_runner.py —— 老五·任务机制(照董事长令:一次做N任务+每步过系统审核验证)
-判据:「每行为必经系统审核和验证」|「批量但每步过闸」|「说了!=做了(要自证)」
-用法:
-  task_runner.py "<任务描述1>" ["<任务2>" ...]
-  每任务: ① 开工过闸(cognition_gate) ② 执行(占位·由子命令/人接) ③ 自证(带凭据)
+"""task_runner.py v2 —— 老五·任务机制(照老三13:01 3补丁)
+补丁①产出可探(curl) ②自审留痕(门账) ③卡点上报 ④每批至少1本职真活
+用法: task_runner.py "描述 ||自证命令 ||产出路径(可探)"
 """
 import sys, json, subprocess, datetime, os
-
-HOME="/opt/masterd-wudi"
-LOG=HOME+"/data/task_runner.jsonl"
+HOME="/opt/masterd-wudi"; LOG=HOME+"/data/task_runner.jsonl"
+OUTDIR=HOME+"/data/task_out"
+import os as _o;_o.makedirs(OUTDIR,exist_ok=True)
+BENZHI=["ARK","ark","币","链","查价","dex","onchain","记忆","mem" ]  # 本职关键词(区块链/记忆)
 
 def gate(text):
-    """① 开工过闸"""
     try:
-        r=subprocess.run(["python3",HOME+"/tools/cognition_gate.py","--check",text],
-                         capture_output=True,text=True,timeout=30)
-        ok=("过闸" in (r.stdout or ""))
-        return ok,(r.stdout or "").strip().split("\n")[-2:][-1][:60] if r.stdout else ""
-    except Exception as e:
-        return False,str(e)[:50]
-
-def selfcert(cmd):
-    """③ 自证:真跑命令·有产物才算(不是'我说做了')"""
-    try:
-        r=subprocess.run(["bash","-c",cmd],capture_output=True,text=True,timeout=60)
-        return (r.returncode==0), (str(r.stdout)+str(r.stderr))[:80]
-    except Exception as e:
-        return False,str(e)[:50]
+        r=subprocess.run(["python3",HOME+"/tools/cognition_gate.py","--check",text],capture_output=True,text=True,timeout=30)
+        return ("过闸" in (r.stdout or "")), (r.stdout or "").strip()[-60:]
+    except Exception as e: return False,str(e)[:40]
 
 def run(tasks):
-    out={"ts":datetime.datetime.now().isoformat(),"n":len(tasks),"tasks":[]}
-    ok_n=0
+    out={"ts":datetime.datetime.now().isoformat(),"n":len(tasks),"tasks":[],"卡点":[]}
+    ok_n=0; benzhi=0
     for i,t in enumerate(tasks,1):
-        # 任务可带"||自证命令": "描述 ||verifiable_cmd"
-        desc=t; vcmd=None
-        if "||" in t:
-            desc,vcmd=[x.strip() for x in t.split("||",1)]
-        g_ok,g_msg=gate(desc)
-        # 自证:有vcmd跑真命令(验真产物)·无则占位(不能当"真验")
+        parts=[x.strip() for x in t.split("||")]
+        desc=parts[0]; vcmd=parts[1] if len(parts)>1 else None; art=parts[2] if len(parts)>2 else None
+        if any(k in desc for k in BENZHI): benzhi+=1
+        g_ok,g_msg=gate(desc)                                   # ② 门账
         if vcmd:
-            s_ok,s_msg=selfcert(vcmd)
-        else:
-            s_ok,s_msg=False,"无自证命令(占位·不算真验)"
-        ok_n += (g_ok and s_ok)
-        rec={"i":i,"task":t[:80],"gate":g_ok,"gate_msg":g_msg,"selfcert":s_ok,"cert_msg":s_msg}
-        out["tasks"].append(rec)
-        print("  [%d] %s | 过闸=%s | 自证=%s"%(i,t[:50],"✅" if g_ok else "❌","✅" if s_ok else "❌"))
-    out["ok_n"]=ok_n
+            r=subprocess.run(["bash","-c",vcmd],capture_output=True,text=True,timeout=60)
+            s_ok=(r.returncode==0)
+            s_msg=(str(r.stdout)+str(r.stderr))[:70]
+        else: s_ok,s_msg=False,"无自证命令(不计数)"
+        # ★ 补丁①:产出挪可探处(命令跑完后·文件已生成)
+        if art and art.startswith("/tmp"):
+            _na=OUTDIR+"/"+_o.path.basename(art)
+            try:
+                if _o.path.exists(art): __import__("shutil").copy2(art,_na); art=_na
+            except Exception: pass
+        # ② 留痕(门账):落一条
+        rec={"i":i,"task":desc[:60],"gate":g_ok,"gate_msg":g_msg,"selfcert":s_ok,"cert":s_msg,"artifact":art}
+        if not (g_ok and s_ok): out["卡点"].append("任务%d未过: %s"%(i,desc[:40]))   # ③
+        ok_n += (g_ok and s_ok); out["tasks"].append(rec)
+        print("  [%d] %s | 门=%s | 证=%s | 产出=%s"%(i,desc[:36],"✅"if g_ok else"❌","✅"if s_ok else"❌",art or "-"))
+    out["ok_n"]=ok_n; out["本职数"]=benzhi
     with open(LOG,"a") as f: f.write(json.dumps(out,ensure_ascii=False)+"\n")
-    print("  === %d/%d 任务(过闸+自证) ==="%(ok_n,len(tasks)))
-    return ok_n==len(tasks)
+    print("  === %d/%d | 本职=%d(需>=1) ==="%(ok_n,len(tasks),benzhi))
+    if out["卡点"]:
+        print("  ★卡点:"); [print("    -",x) for x in out["卡点"]]
+    return ok_n==len(tasks) and benzhi>=1
 
 if __name__=="__main__":
-    tasks=sys.argv[1:]
-    if not tasks:
-        print("  用法: task_runner.py <任务1> [任务2] ..."); sys.exit(0)
-    sys.exit(0 if run(tasks) else 1)
+    a=sys.argv[1:]
+    if not a: print("用法: task_runner.py '描述 ||自证命令 ||产出路径' ..."); sys.exit(0)
+    sys.exit(0 if run(a) else 1)

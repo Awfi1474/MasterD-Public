@@ -39,13 +39,46 @@ def zhi(z, text):
     if any(k in text for k in ["过","冲"]): rules.append("过则收→镇")
     return rules
 
+
+ZANG = {
+ "\u5fc3": {"gong":"\u8840\u8109/\u795e\u660e","zheng":["\u60b8","\u5931\u7720","\u795e\u660f","\u70e6","\u5065\u5fd8"],"tiao":"\u517b\u5fc3\u5b89\u795e"},
+ "\u809d": {"gong":"\u758f\u6cc4/\u85cf\u8840","zheng":["\u90c1","\u6012","\u810b\u75db","\u76ee\u7729","\u8c03\u5ea6","\u4e71"],"tiao":"\u758f\u809d"},
+ "\u813e": {"gong":"\u8fd0\u5316/\u7edf\u8840","zheng":["\u98df\u5c11","\u8179\u80c0","\u4e4f\u529b","\u4e0d\u7a33"],"tiao":"\u5065\u813e"},
+ "\u80ba": {"gong":"\u6c14/\u5ba3\u53d1","zheng":["\u54b3","\u5598","\u9f3b","\u6c14\u77ed"],"tiao":"\u5ba3\u964d"},
+ "\u80be": {"gong":"\u85cf\u7cbe/\u7eb3\u6c14","zheng":["\u8170","\u8033","\u6cc4","\u6f0f","\u5931\u85cf","\u5bc6"],"tiao":"\u8865\u80be"},
+}
+QI_XUE = {
+ "\u6c14\u865a": {"zheng":["\u4e4f\u529b","\u61d2","\u4e0d\u8db3"],"tiao":"\u8865\u6c14"},
+ "\u6c14\u6ede": {"zheng":["\u5835","\u5361","\u6ede","\u95f7"],"tiao":"\u884c\u6c14"},
+ "\u8840\u865a": {"zheng":["\u82cd\u767d","\u8840\u5c11","\u6de1"],"tiao":"\u8865\u8840"},
+ "\u8840\u7600": {"zheng":["\u7600","\u75db\u5b9a\u70b9"],"tiao":"\u6d3b\u8840"},
+ "\u6d25\u4e8f": {"zheng":["\u5e72","\u71e5","\u6e34"],"tiao":"\u751f\u6d25"},
+ "\u6c34\u6e7f": {"zheng":["\u80bf","\u6e7f","\u75f0","\u6c34"],"tiao":"\u5229\u6c34\u5316\u75f0"},
+}
+
+def bingwei(text):
+    hit=[]
+    for z,v in ZANG.items():
+        if any(k in text for k in v["zheng"]):
+            hit.append({"\u75c5\u4f4d":z,"\u4e3b\u529f":v["gong"],"\u8c03":v["tiao"]})
+    return hit
+
+def bingji(text):
+    hit=[]
+    for k,v in QI_XUE.items():
+        if any(x in text for x in v["zheng"]):
+            hit.append({"\u75c5\u673a":k,"\u8c03":v["tiao"]})
+    return hit
+
 def main():
     args=dict(a.split("=",1) for a in sys.argv[1:] if "=" in a)
     text=sizhen(望=args.get("望"),闻=args.get("闻"),问=args.get("问"),切=args.get("切"))
-    z=bazheng(text); r=zhi(z,text); c=chuanbian(text)
+    z=bazheng(text); r=zhi(z,text); c=chuanbian(text); bw=bingwei(text); bj=bingji(text)
     print("  四诊:",text.strip()[:60])
     print("  证(八纲):",z)
     print("  治则:",r)
+    print("  病位(脏腑):",bw)
+    print("  病机(气血津液):",bj)
     if c: print("  ★治未病(传变):",c)
     else: print("  ★治未病:未命中传变(需给'脏/器'关键词如liver/spleen)")
     assert z["阴阳"] in ("阴","阳") and z["虚实"] in ("虚","实")
