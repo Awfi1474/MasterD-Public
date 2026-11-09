@@ -64,7 +64,13 @@ def pull():
         else:
             _st="failed"; _res="有action_type无cmd·明确退回"
     else:
-        _res="非exec任务·已认领working(待本体处理)"
+        # ★ 2026-11-09 修(认错):非exec型(如"加字段"任务)·该【认领working→推本体处理】·不"当场退"
+        _st="working"; _res="非exec型task·已认领working·推本体处理(不误退)"
+        try:
+            import subprocess as _sp2
+            _sp2.Popen(["python3","/opt/masterd-wudi/code/core_v2.py","--once"],
+                       stdout=_sp2.DEVNULL, stderr=_sp2.DEVNULL)
+        except Exception: pass
     # 5. 回 result(done/failed·留痕·不静默)
     try:
         res=json.dumps({"task_id":tid,"from":ME,"state":_st,"result":_res,"artifacts":_art}).encode()

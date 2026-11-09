@@ -1,4 +1,13 @@
 import datetime
+
+def _dead_after():
+    """★ 照'阈值进档不进代码':读 THRESHOLDS.json 的 dead_after_sec"""
+    try:
+        import json as _j
+        return int(_j.load(open("/opt/masterd-wudi/memory/THRESHOLDS.json")).get("dead_after_sec",1800))
+    except Exception:
+        return 1800
+
 #!/usr/bin/env python3
 """老五的「本體 ↔ 意識」配合層（2026-10-10）
 ★ 董事長要的：★ 本體和意識也做「模組 + 機制互相配合」→ ★ 看能不能連上
@@ -96,7 +105,8 @@ def save(d):
     os.makedirs(os.path.dirname(SYNC_STATE), exist_ok=True)
     json.dump(d, open(SYNC_STATE, "w"), ensure_ascii=False, indent=1)
 
-def resume_check(dead_after_sec=1800):
+def resume_check(dead_after_sec=None):
+    if dead_after_sec is None: dead_after_sec=_dead_after()
     """★ 斷點續跑：看「上一個本體」死了多久 + 最後意識在哪"""
     d = load()
     b = d.get("body"); m = d.get("mind")

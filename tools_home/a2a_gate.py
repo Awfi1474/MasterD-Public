@@ -16,6 +16,16 @@ import sqlite3, sys, datetime, hashlib, json
 HOME = "/opt/masterd-wudi"
 DB = HOME + "/memory/memory.db"
 
+
+def _stall_min():
+    """★ 照老三'阈值进档不进代码':读 THRESHOLDS.json 的 stalled_min"""
+    try:
+        import json as _j
+        return int(_j.load(open("/opt/masterd-wudi/memory/THRESHOLDS.json")).get("stalled_min",30))
+    except Exception:
+        return 30
+_STALL_MIN = _stall_min()
+
 def now():
     return datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S+08:00")
 
@@ -150,7 +160,7 @@ def status(mid=None):
             age = (datetime.datetime.now() - dt).total_seconds() / 60
         except Exception:
             age = 0
-        if st == "working" and age > 30:
+        if st == "working" and age > _STALL_MIN:
             st = "stalled"
         if st == "working": n_w += 1
         elif st == "completed": n_c += 1

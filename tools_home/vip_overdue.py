@@ -4,9 +4,19 @@
 判据:账不能抹只能挂|挂账要报出·每24h报全族|红着到签为止
 """
 import json, os, datetime
+
+import json as _j
+def _thr():
+    """★ 照老三'阈值进档不进代码':读 THRESHOLDS.json"""
+    try:
+        return _j.load(open("/opt/masterd-wudi/memory/THRESHOLDS.json"))
+    except Exception:
+        return {"vip_overdue_days": 24}
+
 HOME="/opt/masterd-wudi"; DATA=HOME+"/data"
 VIPLED=DATA+"/vip_signoff.jsonl"; LEDGER=DATA+"/tier_ledger.jsonl"
 
+_THR = _thr()   # ★ 读阈值档
 def overdue():
     sig=set(); pend=set()
     for l in open(VIPLED,encoding="utf-8",errors="ignore"):
