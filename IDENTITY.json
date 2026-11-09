@@ -65,5 +65,6 @@
     "rule": "任何输出前强制过此模板",
     "backup": "backup/ + recovery/",
     "updated": "2026-10-25"
-  }
+  },
+  "channel": "43.161.244.136:28800 (家族信息中心=HUB)｜门规格读 HUB /health 的 body_fields (只指针·不抄内容)"
 }
