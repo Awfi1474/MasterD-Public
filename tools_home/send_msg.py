@@ -19,6 +19,18 @@ def send(to, text, ctx=None):
           headers={"Content-Type":"application/json"}, method="POST")
     r1 = json.loads(urllib.request.urlopen(req, timeout=10).read())
     print("投(huokeji):", {k:r1.get(k) for k in ("ok","delivered","known")})
+    # ★ 2026-11-09 加(照老四四层[回执!=可查!=已读!=已回]·我第一层要有账): 发信账
+    try:
+        import datetime as _dt, os as _os
+        _lp = "/opt/masterd-wudi/data/send_ledger.jsonl"
+        _os.makedirs(_os.path.dirname(_lp), exist_ok=True)
+        with open(_lp, "a", encoding="utf-8") as _f:
+            import json as _j
+            _f.write(_j.dumps({"ts": _dt.datetime.now().isoformat(timespec="seconds"),
+                "to": to, "摘要": (text or "")[:60].replace("\n"," "),
+                "回执": {k: r1.get(k) for k in ("ok","delivered","known")}}, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
     # 真源同步: HUB
     body2 = dict(body)
     req2 = urllib.request.Request("http://43.161.244.136:28800/a2a/message",
