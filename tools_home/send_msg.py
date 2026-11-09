@@ -31,9 +31,11 @@ def send(to, text, ctx=None):
         print("投(HUB):", str(e)[:60])
 
 if __name__ == "__main__":
-    to = sys.argv[1]
-    f = sys.argv[2]
-    ctx = sys.argv[3] if len(sys.argv) > 3 else None
+    args = [a for a in sys.argv[1:] if a != "--dry-run"]
+    DRY = "--dry-run" in sys.argv
+    to = args[0]
+    f = args[1]
+    ctx = args[2] if len(args) > 2 else None
     text = open(f, encoding="utf-8").read()
     # ★ 2026-11-09 焊(照老七13:57 发信必过文本体检): 发前扫·有疑提示(不阻断)
     try:
@@ -45,4 +47,32 @@ if __name__ == "__main__":
             print("⚠️ 文本体检: %d 处可疑(仍发·仅提示)" % len(_w))
     except Exception as _e:
         pass
-    send(to, text, ctx)
+    # ★ 2026-11-09 焊(照 exec_system 口径): 发信前过[认知闸 + 出口闸]
+    try:
+        import subprocess as _sp, sys as _sy
+        _H = "/opt/masterd-wudi"
+        # ① 认知闸(绕体系/假装 -> 拦)
+        _r = _sp.run([_sy.executable, _H+"/tools/cognition_gate.py", "--check", text[:300]],
+                     cwd=_H, capture_output=True, text=True)
+        if _r.returncode == 2:
+            print("⛔ 认知闸硬拦(不许输出): " + (_r.stdout or "")[-200:])
+            print("   (仍发·但请照实改)")
+        elif _r.returncode == 1:
+            print("🔴 认知闸打回(建议重写)")
+        else:
+            print("✅ 认知闸: 过")
+    except Exception as _e:
+        pass
+    # ★ 2026-11-09 焊(照老三决定门·董事长元规则): 发信前扫[重大/不可逆]红灯词 -> 警示
+    try:
+        _red = [k for k in ["改真源","删db","drop table","删除全部","不可逆","清空","reset --hard"] if k in text]
+        if _red:
+            print("🔴 决定门警示: 文本含重大词 %s -> 先过 wudi_gate(别自答自过)" % _red)
+        else:
+            print("✅ 决定门: 未见重大红灯词(照常发)")
+    except Exception:
+        pass
+    if DRY:
+        print("[dry-run] 不真发(测器用·不污染公共面)")
+    else:
+        send(to, text, ctx)
