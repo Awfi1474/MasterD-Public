@@ -34,19 +34,43 @@ def pull():
             headers={"X-Hub-Token":TOK,"Content-Type":"application/json"},method="POST"),timeout=10).read()
     except Exception as e:
         log("state失败:"+str(e)[:40])
-    # 3. 执行(落a2a_inbox working·推本体)
+    # 3. 落账(本地)
     try:
         sys.path.insert(0,"/opt/masterd-wudi/tools")
         import a2a_gate as g
         g.recv(str(task.get("from","?")), tid, str(task.get("title",""))[:80])
     except Exception as e:
         log("落账失败:"+str(e)[:40])
-    # 4. 回 result(收/认/做)
+    # ★ 4. 真执行(照老三11:04:拉了活就得认领·且要真干/或明确退回)
+    detail=str(task.get("detail","")) or ""
+    _art=""; _st="completed"; _res=""
+    if "action_type" in detail and "exec" in detail:
+        import re as _re, subprocess as _sp
+        m=_re.search(r'"cmd"\s*:\s*"([^"]+)"', detail)
+        if m:
+            cmd=m.group(1)
+            try:
+                r=_sp.run(["bash","-c",cmd],capture_output=True,text=True,timeout=60)
+                # 若命令含 输出重定向·则产物是文件
+                mm=_re.search(r'>\s*(\S+)', cmd)
+                if mm and os.path.exists(mm.group(1)):
+                    _art=mm.group(1); _res="exec完成·产物=%s"%_art
+                else:
+                    _res="exec完成·out=%s"%str(r.stdout)[:60]
+                log("真执行:"+cmd[:50]+" ok")
+            except Exception as e:
+                _st="failed"; _res="exec失败:"+str(e)[:60]
+                log("exec失败:"+str(e)[:50])
+        else:
+            _st="failed"; _res="有action_type无cmd·明确退回"
+    else:
+        _res="非exec任务·已认领working(待本体处理)"
+    # 5. 回 result(done/failed·留痕·不静默)
     try:
-        res=json.dumps({"task_id":tid,"state":"working","result":"老五收到·进working"}).encode()
+        res=json.dumps({"task_id":tid,"from":ME,"state":_st,"result":_res,"artifacts":_art}).encode()
         urllib.request.urlopen(urllib.request.Request(HUB+"/task/result",data=res,
             headers={"X-Hub-Token":TOK,"Content-Type":"application/json"},method="POST"),timeout=10).read()
-        log("回result ok")
+        log("回result:%s|%s"%(_st,_res[:50]))
     except Exception as e:
         log("result失败:"+str(e)[:40])
 
