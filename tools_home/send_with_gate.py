@@ -103,7 +103,7 @@ def send_gated(msg, to="*", ts=None):
     # ★ 2026-10-25 修（判据: 造了没接 / 闸门是强制不是自觉）
     #   认知体系模板 cognition_gate.py 之前建了但没人调 → 现在焊进发送必经路
     try:
-        _cg = subprocess.run(["python3", HOME + "/tools/cognition_gate.py", "--check", str(msg)[:800]],
+        _cg = subprocess.run(["python3", HOME + "/tools/cognition_gate.py", "--check", str(msg)[:2000]],
                              capture_output=True, text=True, timeout=40)
         _cgo = _cg.stdout or ""
         _cgrc = _cg.returncode

@@ -136,7 +136,7 @@ def _pre_gate(what):
 def do_run(intent, cmd):
     # ★ 2026-10-25 修: 原来意图截断到60字·四道关被切掉→认知系统看不到③反证
     #   判据: 「先怀疑自己的尺子」→ 不是系统不认·是我给的信息不全
-    what = "执行命令: %s ｜意图: %s" % (cmd[:100], intent[:400])
+    what = "执行命令: %s ｜意图: %s" % (cmd[:500], intent[:2000])
     passed, reasons = _pre_gate(what)
     # ★ 第6步: 不过 → critic 重写 ≤3次
     if not passed:
@@ -160,7 +160,7 @@ def do_run(intent, cmd):
     return r.returncode
 
 def do_write(path, content, intent):
-    what = "写文件: %s ｜意图: %s" % (path[:100], intent[:400])
+    what = "写文件: %s ｜意图: %s" % (path[:500], intent[:2000])
     passed, reasons = _pre_gate(what)
     if not passed:
         print("════ ② 不通过 → 重写 ≤%d 次 ════" % MAX_REWRITE)
@@ -183,14 +183,15 @@ def do_write(path, content, intent):
         _log({"ts": _now(), "动作": "write", "路径": path[:100], "结果": "失败", "错误": str(ex)[:120]})
         return 1
 
-def do_say(msg):
-    passed, reasons = _pre_gate("发送消息: " + msg[:120])
+def do_say(msg, target=None):
+    passed, reasons = _pre_gate("发送消息: " + msg[:2000])
     if not passed:
-        _write_fail_to_memory("发送消息: " + msg[:120], reasons)
+        _write_fail_to_memory("发送消息: " + msg[:2000], reasons)
         print("⛔ 拒绝发送")
         return 1
-    r = subprocess.run([sys.executable, os.path.join(TOOLS, "send_guarded_v2.py"), msg],
-                       capture_output=True, text=True, timeout=120)
+    _args = [sys.executable, os.path.join(TOOLS, "send_guarded_v2.py"), msg]
+    if target: _args.append(target)
+    r = subprocess.run(_args, capture_output=True, text=True, timeout=120)
     print((r.stdout or "")[-1200:])
     _log({"ts": _now(), "动作": "say", "消息": msg[:120], "结果": "已发送" if r.returncode == 0 else "失败"})
     return r.returncode
@@ -214,7 +215,12 @@ def main():
     act = sys.argv[1]
     if act == "run" and len(sys.argv) >= 4: return do_run(sys.argv[2], sys.argv[3])
     if act == "write" and len(sys.argv) >= 5: return do_write(sys.argv[2], sys.argv[3], sys.argv[4])
-    if act == "say" and len(sys.argv) >= 3: return do_say(" ".join(sys.argv[2:]))
+    if act == "say" and len(sys.argv) >= 3:
+        _t = None
+        return do_say(" ".join(sys.argv[2:]), _t)
+    if act == "say-file" and len(sys.argv) >= 3:
+        _t = sys.argv[3] if len(sys.argv) > 3 else None
+        return do_say(open(sys.argv[2], encoding="utf-8").read(), _t)
     if act == "ledger": return do_ledger()
     print(__doc__); return 1
 

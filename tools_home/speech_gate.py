@@ -95,7 +95,7 @@ def check(text):
     _cg_msg = ""
     try:
         import subprocess as _sp
-        _r = _sp.run(["python3", HOME + "/tools/cognition_gate.py", "--check", t[:800]],
+        _r = _sp.run(["python3", HOME + "/tools/cognition_gate.py", "--check", t[:2000]],
                      capture_output=True, text=True, timeout=40)
         _cg_rc = _r.returncode
         _out = _r.stdout or ""

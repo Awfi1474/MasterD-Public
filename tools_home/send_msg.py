@@ -52,7 +52,7 @@ if __name__ == "__main__":
         import subprocess as _sp, sys as _sy
         _H = "/opt/masterd-wudi"
         # ① 认知闸(绕体系/假装 -> 拦)
-        _r = _sp.run([_sy.executable, _H+"/tools/cognition_gate.py", "--check", text[:300]],
+        _r = _sp.run([_sy.executable, _H+"/tools/cognition_gate.py", "--check", text[:2000]],
                      cwd=_H, capture_output=True, text=True)
         if _r.returncode == 2:
             print("⛔ 认知闸硬拦(不许输出): " + (_r.stdout or "")[-200:])
