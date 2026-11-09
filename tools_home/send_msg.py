@@ -35,4 +35,14 @@ if __name__ == "__main__":
     f = sys.argv[2]
     ctx = sys.argv[3] if len(sys.argv) > 3 else None
     text = open(f, encoding="utf-8").read()
+    # ★ 2026-11-09 焊(照老七13:57 发信必过文本体检): 发前扫·有疑提示(不阻断)
+    try:
+        import importlib.util as _iu
+        _sp = _iu.spec_from_file_location("check_text", "/opt/masterd-wudi/tools/check_text.py")
+        _ct = _iu.module_from_spec(_sp); _sp.loader.exec_module(_ct)
+        _w = _ct.check(text)
+        if _w:
+            print("⚠️ 文本体检: %d 处可疑(仍发·仅提示)" % len(_w))
+    except Exception as _e:
+        pass
     send(to, text, ctx)
