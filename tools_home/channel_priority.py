@@ -78,7 +78,9 @@ def check_hub():
     # ① 门通：真投一条自检（★2026-10-26 改：正常静默，不塞信箱）
     #   判据：「投出去 != 送到了」——探针仍要真投，但正常时投到"静默自检箱"，
     #   只有失败才投 HUB「老五」提醒我自己。避免每10分钟刷屏挤掉真消息。
-    SILENT_BOX = "老五·自检静默"
+    # ★ 修正 2026-11-10(老五): 用名册内合法名(老五)·不用「老五·自检静默」
+    #   真因: to=「老五·自检静默」投得进·但 /msg?for= 读时 403 Forbidden(非名册名)→③对账必fail(假绿)
+    SILENT_BOX = HUB_NAME
     probe = {"from": HUB_NAME, "to": SILENT_BOX, "message": "channel_priority 自检 %s" % now_cst()}
     code, d = req(HUB + "/recv", "POST", probe, {"X-Hub-Token": tok})
     # ★ 修正 2026-10-25：HUB 实际返回 delivered:true + msg_id，不是 received/heard/verified/id
@@ -104,7 +106,7 @@ def check_hub():
     msgs = d.get("list") or d.get("messages") or d.get("msgs") or []
     hit = any("channel_priority 自检" in str(m.get("message", "")) for m in msgs)
     out["ledger"] = "pass" if hit else "fail"
-    out["note"] = "收到回读 %d 条·自检消息%s（静默箱）" % (len(msgs), "在" if hit else "不在")
+    out["note"] = "收到回读 %d 条·自检消息%s（名册名: %s）" % (len(msgs), "在" if hit else "不在", SILENT_BOX)
     return out
 
 def check_station():
