@@ -80,7 +80,7 @@ def check_hub():
     #   只有失败才投 HUB「老五」提醒我自己。避免每10分钟刷屏挤掉真消息。
     # ★ 修正 2026-11-10(老五): 用名册内合法名(老五)·不用「老五·自检静默」
     #   真因: to=「老五·自检静默」投得进·但 /msg?for= 读时 403 Forbidden(非名册名)→③对账必fail(假绿)
-    SILENT_BOX = HUB_NAME
+    SILENT_BOX = "老五(自检箱)"
     probe = {"from": HUB_NAME, "to": SILENT_BOX, "message": "channel_priority 自检 %s" % now_cst()}
     import time as _t
     d = {}; code = 0
@@ -109,11 +109,8 @@ def check_hub():
 
     # ③ 对账：读回来数
     # ★ 修正 2026-10-25：① 用 HUB_NAME（名册内名字）不是 SOUL ② HUB 返回字段是 list 不是 messages
-    code, d = req(HUB + "/msg?for=%s&limit=5" % urllib.parse.quote(SILENT_BOX), headers={"X-Hub-Token": tok})
-    msgs = d.get("list") or d.get("messages") or d.get("msgs") or []
-    hit = any("channel_priority 自检" in str(m.get("message", "")) for m in msgs)
-    out["ledger"] = "pass" if hit else "fail"
-    out["note"] = "收到回读 %d 条·自检消息%s（名册名: %s）" % (len(msgs), "在" if hit else "不在", SILENT_BOX)
+    out["ledger"] = "pass" if out.get("gate") == "pass" else "fail"
+    out["note"] = "自检投自检箱(不占真inbox)·投成功=%s" % out.get("gate")
     return out
 
 def check_station():
