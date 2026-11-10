@@ -27,7 +27,7 @@ HUB     = "http://43.161.244.136:28800"
 STATION = "http://43.161.244.136:28800/heartbeat"  # ★ 2026-11-08 三哥HUB无station口·改心跳口
 HOME    = "http://127.0.0.1:28430"
 SOUL    = "laowu"          # 站台 soul_id 必须 ASCII
-HUB_NAME = "老五"           # ★ HUB 投递名·必须和名册一致（名册无 laowu→进隔离区）
+HUB_NAME = "老五(阿诊)"     # ★ 修正2026-11-10(老五): 投/读都用名册【全名】·短名「老五」for读不回→③对账假fail
 TOKEN_FILES = ["/opt/masterd-wudi/data/hub.token", "/opt/masterd-wudi/data/hub_token"]
 CST = timezone(timedelta(hours=8))
 
