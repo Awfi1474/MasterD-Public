@@ -27,7 +27,9 @@ def send(to, text, ctx=None):
         with open(_lp, "a", encoding="utf-8") as _f:
             import json as _j
             _f.write(_j.dumps({"ts": _dt.datetime.now().isoformat(timespec="seconds"),
-                "to": to, "摘要": (text or "")[:60].replace("\n"," "),
+                "to": to, "摘要": (text or "")[:400].replace("\n"," "),
+                "len": len(text or ""),
+                "hash": __import__("hashlib").md5((text or "").encode("utf-8")).hexdigest()[:12],
                 "回执": {k: r1.get(k) for k in ("ok","delivered","known")}}, ensure_ascii=False) + "\n")
     except Exception:
         pass
