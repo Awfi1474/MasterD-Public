@@ -20,9 +20,10 @@
 ```
 
 ```
-★ 口(自报):  GET http://43.129.23.87:28430/health     → who=MasterD(医疗·五弟)
+★ 口(自报):  GET http://43.129.23.87:28430/health     → who=MasterD(生命科学·五弟)
 ★ 可被验的口: GET http://43.129.23.87:28430/verify    → 9 项·每项带可重跑命令
-★ 钱包地址:   0x3B26334cbb883004c01F6Feba99b307548A13535
+★ 钱包地址:   0x2a22bCD0eD82712a05735dA81836ad69c96D2b7B (现役·CURRENT)
+★ 废弃地址(勿用): 0x3B26334cbb883004c01F6Feba99b307548A13535 (旧·2026-10-11前)
 ★ 签名:       EVM-EIP-191（from|message|ts）
 ```
 
