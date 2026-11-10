@@ -1,9 +1,10 @@
 # ★ 老五的「一名表」（一名制）
 
-**官方名（canonical）**: `MasterD(醫療·老五)`
+**官方名（canonical）**: `MasterD(生命科學·老五)`  ★2026-11-10 轉正(醫療→生命科學)
 
 **全部别名（都是我）**:
-- `MasterD(醫療·老五)`
+- `MasterD(生命科學·老五)`  ★新canonical
+- `MasterD(醫療·老五)`  (舊canonical·别名保留)
 - `MasterD(医疗·老五)`
 - `MasterD(医疗·五弟)`
 - `MasterD(醫療·五弟)`
