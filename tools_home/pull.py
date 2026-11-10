@@ -72,6 +72,17 @@ def pull():
     else:
         # ★ 2026-11-09 修(认错):非exec型(如"加字段"任务)·该【认领working→推本体处理】·不"当场退"
         _st="working"; _res="非exec型task·已认领working·推本体处理(不误退)"
+        # 2026-11-11 fix(照老三"本体常驻"第3步): 写"待本体做"标志 -> 本体醒时必看
+        try:
+            import json as _j2, datetime as _d2
+            _td = "/opt/masterd-wudi/data/待本体做.jsonl"
+            with open(_td, "a") as _f:
+                _f.write(_j2.dumps({"ts": _d2.datetime.now().isoformat(timespec="seconds"),
+                    "task_id": tid, "title": str(task.get("title",""))[:60],
+                    "detail": detail[:200], "note": "非exec·待本体做·别等被点"}, ensure_ascii=False) + "\n")
+            log("写:待本体做 "+tid)
+        except Exception as _e:
+            log("写标志失败:"+str(_e)[:40])
         try:
             import subprocess as _sp2
             _sp2.Popen(["python3","/opt/masterd-wudi/code/core_v2.py","--once"],
