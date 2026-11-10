@@ -42,7 +42,7 @@ def _sh(cmd, t=12):
 
 
 def collect():
-    d = {"ts": datetime.datetime.now().isoformat(), "who": "MasterD(醫療·老五)",
+    d = {"ts": datetime.datetime.now().isoformat(), "who": "MasterD(生命科學·老五)",
          "door": "http://43.129.23.87:28430/verify", "checks": {}}
 
     # ① 轴

@@ -82,7 +82,14 @@ def check_hub():
     #   真因: to=「老五·自检静默」投得进·但 /msg?for= 读时 403 Forbidden(非名册名)→③对账必fail(假绿)
     SILENT_BOX = HUB_NAME
     probe = {"from": HUB_NAME, "to": SILENT_BOX, "message": "channel_priority 自检 %s" % now_cst()}
-    code, d = req(HUB + "/recv", "POST", probe, {"X-Hub-Token": tok})
+    import time as _t
+    d = {}; code = 0
+    for _try in range(3):
+        code, d = req(HUB + "/recv", "POST", probe, {"X-Hub-Token": tok})
+        if d.get("ok") is True:
+            break
+        if _try < 2:
+            _t.sleep(1)
     # ★ 修正 2026-10-25：HUB 实际返回 delivered:true + msg_id，不是 received/heard/verified/id
     ok = d.get("ok") is True and (
         d.get("received") is True or d.get("heard") is True or d.get("verified") is True
