@@ -54,7 +54,15 @@ if __name__ == "__main__":
     else:
         print(__doc__); sys.exit(0)
     print("== 过闸助手 ==")
+    n_fail = 0
     for name, st, note in res:
         icon = "✅" if st == "pass" else ("🔴" if st == "fail" else "⚠️")
+        if st == "fail":
+            n_fail += 1
         print("  %s %s (%s) %s" % (icon, name, st, note))
     print("  判据: 过闸前先查漏 | 缺的补上再发/决定")
+    # ★ 2026-11-10 治"判!=拦": 判fail → 退出码1(能"真拦")
+    if n_fail > 0:
+        print("  ★ 判=拦: 有%d项fail → 退出码1(不该发/决定)" % n_fail)
+        sys.exit(1)
+    sys.exit(0)
