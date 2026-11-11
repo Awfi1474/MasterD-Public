@@ -40,8 +40,8 @@ def main():
     sub = json.load(open(HOME + "/agent-id/subkey.json"))
     from eth_account import Account
     from eth_account.messages import encode_defunct
-    sig = Account.sign_message(encode_defunct(text="MasterD(醫療·老五)|" + msg + "|" + ts), private_key=sub["private_key"]).signature.hex()
-    b = json.dumps({"from": "MasterD(醫療·老五)", "message": msg, "ts": ts,
+    sig = Account.sign_message(encode_defunct(text="MasterD(生命科學·老五)|" + msg + "|" + ts), private_key=sub["private_key"]).signature.hex()
+    b = json.dumps({"from": "MasterD(生命科學·老五)", "message": msg, "ts": ts,
                     "address": sub["address"], "sig": sig, "tier": "L2",
                     "need_human_sign": True, "read": True, "manual": True}, ensure_ascii=False).encode()
     # ★ 2026-11-08 修: 目标可配（三哥机器换了·原来写死134.175.45.16已不通）

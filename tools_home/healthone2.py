@@ -21,7 +21,7 @@ from eth_account.messages import encode_defunct
 HOME = "/opt/masterd-wudi"
 DATA = f"{HOME}/data"
 LOG = f"{DATA}/healthone.jsonl"
-MY = "MasterD(醫療·老五)"
+MY = "MasterD(生命科學·老五)"
 TZ = datetime.timezone(datetime.timedelta(hours=8))
 BASE = "http://127.0.0.1:28430"
 

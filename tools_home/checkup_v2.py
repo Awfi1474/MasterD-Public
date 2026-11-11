@@ -68,7 +68,7 @@ def member_of(m):
         if k in f: return k
         if k == "二哥" and "量化" in f: return "二哥"
         if k == "三哥" and "cognitive" in f: return "三哥"
-        if k == "老五" and ("五弟" in f or "醫療" in f or "医疗" in f): return "老五"
+        if k == "老五" and ("五弟" in f or "生命科學" in f or "生命科学" in f): return "老五"
     return None
 
 def is_checkup(t):

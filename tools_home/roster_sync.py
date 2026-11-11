@@ -99,8 +99,8 @@ def main():
                         if dd.get("unread"): e["unread"] = "http://%s%s" % (d.get("ip",""), dd["unread"])
     # ★ 我自己的信息（永远有·不靠"拉"）
     merged["各家"]["老五(我)"] = {
-        "names": ["MasterD(醫療·老五)", "MasterD(医疗·老五)", "MasterD(医疗·五弟)",
-                  "MasterD(醫療·五弟)", "老五", "五弟", "wudi", "laowu", "阿診", "阿诊"],
+        "names": ["MasterD(生命科學·老五)", "MasterD(生命科學·老五)", "MasterD(生命科學·五弟)",
+                  "MasterD(生命科學·五弟)", "老五", "五弟", "wudi", "laowu", "阿診", "阿诊"],
         "addresses": ["0x2a22bCD0eD82712a05735dA81836ad69c96D2B7B",
                       "0xAf3CE40E07d66943045b2bE6e044bDedA5FA5099"],
         "ip": "43.129.23.87",

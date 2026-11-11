@@ -26,7 +26,7 @@ DATA = f"{HOME}/data"
 LEDGER = f"{DATA}/tier_ledger.jsonl"
 VIPLED = f"{DATA}/vip_signoff.jsonl"      # ★ VIP 人签专用账
 TOKENF = f"{DATA}/vip_human.token"        # ★ 人令牌（★ 机器不知道这个文件=冒充不了）
-MY = "MasterD(醫療·老五)"
+MY = "MasterD(生命科學·老五)"
 
 
 def ts():

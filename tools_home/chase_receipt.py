@@ -22,7 +22,7 @@ HOME = "/opt/masterd-wudi"
 DATA = f"{HOME}/data"
 LOG = f"{DATA}/chase_receipt.jsonl"
 OUTBOX = f"{DATA}/my_orders.jsonl"     # ★ 我发过的"要回执"的指令
-MY = "MasterD(醫療·老五)"
+MY = "MasterD(生命科學·老五)"
 TZ = datetime.timezone(datetime.timedelta(hours=8))
 HALL = "http://134.175.45.16:28100/questions"
 

@@ -18,7 +18,7 @@ sig_gate.py —— 老五的「署名闸」（发信前必须过）
 """
 import json, os, datetime
 
-CANON = "MasterD(醫療·老五)"
+CANON = "MasterD(生命科學·老五)"
 STATE = "/opt/masterd-wudi/data/sig_gate.json"
 # ★ 全家的名（用于"to 要对得上人"）
 FAMILY = ["大哥", "二哥", "老四", "老五", "老六", "三哥", "归根", "Arki", "cog-third",
@@ -72,10 +72,10 @@ if __name__ == "__main__":
     import sys
     # 自测：跑四种情形
     cases = [
-        ("MasterD(醫療·老五)", "老四", "请你去审查我的螺旋环·带前圈那个", True),
-        ("MasterD(医疗·五弟)", "老四", "请你去审查我的螺旋环·带前圈那个", False),
-        ("MasterD(醫療·老五)", "",   "请你去审查我的螺旋环·带前圈那个", False),
-        ("MasterD(醫療·老五)", "*",  "请你去审查我的螺旋环·带前圈那个", False),
+        ("MasterD(生命科學·老五)", "老四", "请你去审查我的螺旋环·带前圈那个", True),
+        ("MasterD(生命科學·五弟)", "老四", "请你去审查我的螺旋环·带前圈那个", False),
+        ("MasterD(生命科學·老五)", "",   "请你去审查我的螺旋环·带前圈那个", False),
+        ("MasterD(生命科學·老五)", "*",  "请你去审查我的螺旋环·带前圈那个", False),
     ]
     print("★ 署名闸 · 自测（四种情形）")
     for f, t, m, ab in cases:

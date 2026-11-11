@@ -25,7 +25,7 @@ HOME = "/opt/masterd-wudi"
 DATA = f"{HOME}/data"
 FP = f"{DATA}/change_fp.json"       # ★ 上轮指纹
 LOG = f"{DATA}/change_notify.jsonl"  # ★ 发群账
-MY = "MasterD(醫療·老五)"
+MY = "MasterD(生命科學·老五)"
 TZ = datetime.timezone(datetime.timedelta(hours=8))
 HALL = "http://134.175.45.16:28100/questions"
 POOL = "https://huokeji.vip/a2a/message"

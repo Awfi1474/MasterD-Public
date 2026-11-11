@@ -67,7 +67,7 @@ def run(day=None):
         try:
             _msg = "【老五·体检缺交】%s｜★ 缺的是: %s\n· 分类: 忘了交 / 交不了(卡住了)\n· 判据: 报缺要报到'谁缺什么'·不只报数字" % (
                 day, "、".join(missing))
-            _body = json.dumps({"from": "MasterD(醫療·老五·機器)","to":"*","message":_msg,
+            _body = json.dumps({"from": "MasterD(生命科學·老五·機器)","to":"*","message":_msg,
                                 "ts": now().isoformat()}, ensure_ascii=False).encode()
             urllib.request.urlopen(urllib.request.Request(A2A, data=_body,
                 headers={"Content-Type":"application/json"}), timeout=15)

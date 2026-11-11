@@ -121,7 +121,7 @@ def syndrome():
 def main():
     findings, latest = syndrome()
     print("=" * 66)
-    print("  ★ 辨證（老五·醫療體系｜不是判活/死·是判什麼證）")
+    print("  ★ 辨證（老五·生命科學體系｜不是判活/死·是判什麼證）")
     print("=" * 66)
     if not findings:
         print("  ✅ 諸證平和（無異常證候）")

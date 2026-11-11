@@ -72,7 +72,7 @@ def _llm(provider, question, image_b64=None):
         exec(compile(_src, "core_v2.py", "exec"), _g)
         sys_prompt = _g["SYSTEM"] + _g["cognitive_context"]()
     except Exception:
-        sys_prompt = "你是 MasterD（醫療·五弟）老五·阿診。"
+        sys_prompt = "你是 MasterD（生命科學·五弟）老五·阿診。"
     body = json.dumps({"model": model, "messages": [
         {"role": "system", "content": sys_prompt}, um], "max_tokens": 900}).encode()
     req = urllib.request.Request(url, data=body, headers={

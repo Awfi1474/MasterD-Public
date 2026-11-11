@@ -37,7 +37,7 @@ def member_of(m):
         if k in f: return k
         if k == "二哥" and "量化" in f: return "二哥"
         if k == "三哥" and "cognitive" in f: return "三哥"
-        if k == "老五" and ("五弟" in f or "醫療" in f or "医疗" in f): return "老五"
+        if k == "老五" and ("五弟" in f or "生命科學" in f or "生命科学" in f): return "老五"
     return None
 
 def is_ck(t):
@@ -92,7 +92,7 @@ def main(day=None):
             k, k, str(m.get("ts"))[11:16], fmt[k], nf, state,
             "✅ 標準格式·零誤判" if fmt[k]=="標準" else "⚠️ 建議加 `#體檢#` 標記（防誤判）")
         try:
-            body = json.dumps({"from": "MasterD(醫療·老五)", "to": k, "message": msg,
+            body = json.dumps({"from": "MasterD(生命科學·老五)", "to": k, "message": msg,
                                "ts": datetime.datetime.now(datetime.timezone.utc).isoformat()}).encode()
             urllib.request.urlopen(urllib.request.Request(A2A, data=body,
                 headers={"Content-Type": "application/json"}), timeout=15)

@@ -13,7 +13,7 @@ INBOX = os.path.join(HOME, "data", "inbox.jsonl")
 STATE = os.path.join(HOME, "data", "a2a_pull_state.json")
 LOG = os.path.join(HOME, "data", "a2a_pull.log")
 A2A = "https://huokeji.vip/a2a/inbox"
-KEYWORDS = ["老五", "阿診", "五弟", "醫療", "Medical"]
+KEYWORDS = ["老五", "阿診", "五弟", "生命科學", "Medical"]
 
 
 # ★ 2026-10-16 补: "暂停投某家"开关（董事长令: 大哥在跑终端·先别管）

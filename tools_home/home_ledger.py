@@ -7,7 +7,7 @@ HOME = "/opt/masterd-wudi"
 LEDGER = os.path.join(HOME, "data", "laowu_home_ledger.json")
 
 ledger = {
-    "who": "老五（MasterD·醫療·阿診）",
+    "who": "老五（MasterD·生命科學·阿診）",
     "updated": datetime.datetime.now().isoformat(),
     "identity": {
         "current": "0x2a22bCD0eD82712a05735dA81836ad69c96D2b7B",

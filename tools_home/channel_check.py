@@ -147,7 +147,7 @@ def main():
         if s.get("sig") != sig:
             s["sig"] = sig; json.dump(s, open(st, "w"))
             try:
-                body = json.dumps({"from": "MasterD(醫療·老五·機器)", "to": "*",
+                body = json.dumps({"from": "MasterD(生命科學·老五·機器)", "to": "*",
                     "message": "🔴 通道體檢：斷點 %s\n→ 判據：C9 三源交叉（可達+可讀+可寫）" % "、".join(bad),
                     "ts": now()}).encode()
                 urllib.request.urlopen(urllib.request.Request(A2A, data=body,

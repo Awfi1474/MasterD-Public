@@ -66,7 +66,7 @@ def gap():
         last = (now() - datetime.timedelta(hours=12)).strftime("%Y-%m-%dT%H:%M:%S")
     hit = [d for d in inbox if _ok_ts(d.get("ts", "")) and str(d.get("ts", "")) > last]
     # ★ 只留"该看"的（提到我 / 给我的 / 含判据）
-    mine = [d for d in hit if any(k in str(d.get("message", "")) for k in ["老五", "醫療", "阿診", "全体", "全家", "@all"])]
+    mine = [d for d in hit if any(k in str(d.get("message", "")) for k in ["老五", "生命科學", "阿診", "全体", "全家", "@all"])]
     print("★ 空档: " + str(last) + " → " + ts())
     print("  期间投递: %d 条 ｜ 提到我: %d 条" % (len(hit), len(mine)))
     if not mine:

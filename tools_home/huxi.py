@@ -23,7 +23,7 @@ HOME  = os.environ.get("MD_HOME", "/opt/masterd-wudi")
 STATE = f"{HOME}/data/huxi.json"
 LOG   = f"{HOME}/data/huxi.log"
 
-ME = ["MasterD(醫療·老五)", "MasterD(医疗·老五)", "老五", "cog-fifth", "MasterD(燼·五哥"]
+ME = ["MasterD(生命科學·老五)", "MasterD(生命科學·老五)", "老五", "cog-fifth", "MasterD(燼·五哥"]
 
 
 def now():

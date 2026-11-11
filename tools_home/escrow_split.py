@@ -35,7 +35,7 @@ def main():
         segs.append({"part": "%02d/%02d" % (i + 1, nseg), "file": name,
                      "len": len(chunk), "sha256_8": hashlib.sha256(chunk.encode()).hexdigest()[:8]})
     meta = {
-        "who": "老五（MasterD·醫療·阿診）",
+        "who": "老五（MasterD·生命科學·阿診）",
         "what": "命包（密文·不含口令）",
         "package": "老五-recovery.tar.gz",
         "package_size": len(data),

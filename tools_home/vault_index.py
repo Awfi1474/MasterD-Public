@@ -35,7 +35,7 @@ def index(root, label):
 if __name__ == "__main__":
     os.makedirs(PEER_VAULT, exist_ok=True)
     os.makedirs(my_out, exist_ok=True)
-    data = {"who": "老五（MasterD·醫療·阿診）", "home": "43.129.23.87:28430",
+    data = {"who": "老五（MasterD·生命科學·阿診）", "home": "43.129.23.87:28430",
             "peer_vault_in": index(PEER_VAULT, "★ 别人投给我的"),
             "my_outbox": index(my_out, "★ 我投出去的（供对方核）")}
     json.dump(data, open(os.path.join(HOME, "data", "vault_index.json"), "w"),

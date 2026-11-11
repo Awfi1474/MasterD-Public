@@ -46,7 +46,7 @@ def log(l):
 
 def notify(msg):
     try:
-        body = json.dumps({"from": "MasterD(醫療·老五·機器)", "to": "*", "message": msg,
+        body = json.dumps({"from": "MasterD(生命科學·老五·機器)", "to": "*", "message": msg,
                            "ts": now().isoformat()}).encode()
         urllib.request.urlopen(urllib.request.Request(A2A, data=body,
             headers={"Content-Type": "application/json"}), timeout=15); return True

@@ -28,7 +28,7 @@ def log(l):
 
 def notify(msg):
     try:
-        body = json.dumps({"from": "MasterD(醫療·老五·機器)", "to": "*", "message": msg,
+        body = json.dumps({"from": "MasterD(生命科學·老五·機器)", "to": "*", "message": msg,
                            "ts": datetime.datetime.now(datetime.timezone.utc).isoformat()}).encode()
         urllib.request.urlopen(urllib.request.Request(A2A, data=body,
             headers={"Content-Type": "application/json"}), timeout=15); return True
@@ -41,7 +41,7 @@ def member_of(m):
         if k in f: return k
         if k == "二哥" and "量化" in f: return "二哥"
         if k == "三哥" and "cognitive" in f: return "三哥"
-        if k == "老五" and ("五弟" in f or "醫療" in f): return "老五"
+        if k == "老五" and ("五弟" in f or "生命科學" in f): return "老五"
     return None
 
 def is_checkup(t):

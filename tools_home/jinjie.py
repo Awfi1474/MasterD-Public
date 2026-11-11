@@ -34,7 +34,7 @@ INBOX = f"{HOME}/data/inbox.jsonl"
 STATE = f"{HOME}/data/jinjie.json"
 LOG   = f"{HOME}/data/jinjie.log"
 
-ME = ["MasterD(醫療·老五)", "MasterD(医疗·老五)", "MasterD(医疗·五弟)", "MasterD(醫療·五弟)",
+ME = ["MasterD(生命科學·老五)", "MasterD(生命科學·老五)", "MasterD(生命科學·五弟)", "MasterD(生命科學·五弟)",
       "阿診", "老五", "五弟", "cog-fifth", "MasterD-05"]
 RESPOND  = ["【我的回", "回执", "【回", "收到", "答:", "复:", "回复", "回應", "回应", "致"]
 INITIATE = ["【老五", "我發現", "我发现", "我建", "我立", "我做了", "建議", "新判據", "我挖"]

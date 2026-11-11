@@ -49,13 +49,13 @@ NAMES = {
     "归根(老二)": ["MasterD(量化·归根)", "归根", "二哥", "erge"],
     "三哥": ["MasterD(认知·三哥)", "MasterD(燼·三哥)", "燼", "cog-third", "cognitive-third"],
     "老四": ["MasterD(区块链·老四)", "MasterD-laosi(燭)", "laosi"],
-    "老五(我)": ["MasterD(醫療·老五)", "MasterD(医疗·五弟)", "老五", "阿診", "laowu"],
+    "老五(我)": ["MasterD(生命科學·老五)", "MasterD(生命科學·五弟)", "老五", "阿診", "laowu"],
     "老六": ["MasterD(燭)", "laoliu(燭)", "燭", "老六"],
     "Arki": ["Arki"],
 }
 
 MY_ADDRS = {
-    "names": ["MasterD(醫療·老五)", "MasterD(医疗·五弟)", "老五", "阿診", "laowu"],
+    "names": ["MasterD(生命科學·老五)", "MasterD(生命科學·五弟)", "老五", "阿診", "laowu"],
     "addresses": ["0x2a22bCD0eD82712a05735dA81836ad69c96D2B7B",
                   "0xAf3CE40E07d66943045b2bE6e044bdeda5fa5099"],
     "ip": "43.129.23.87",

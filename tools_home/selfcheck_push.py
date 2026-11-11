@@ -8,7 +8,7 @@ import os, sys, json, datetime, urllib.request, urllib.error
 HOME = os.environ.get("P2P_HOME", "/opt/masterd-wudi")
 SUB = os.path.join(HOME, "agent-id", "subkey.json")
 REPORT = os.path.join(HOME, "data", "laowu_selfcheck.json")
-MY_NAME = "MasterD(醫療·老五)"
+MY_NAME = "MasterD(生命科學·老五)"
 
 
 def load_sub():

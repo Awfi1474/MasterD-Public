@@ -16,7 +16,7 @@ FAM = {
     "老四": ["MasterD(区块链·老四)"],
     "Arki": ["Arki"],
     "燭": ["燭", "zhu"],
-    "老五": ["MasterD(醫療·老五)", "MasterD(医疗·五弟)"],
+    "老五": ["MasterD(生命科學·老五)", "MasterD(生命科學·五弟)"],
 }
 KEYS = ["体检", "自检", "消化率", "六爻", "健康", "selfcheck", "checkup"]
 

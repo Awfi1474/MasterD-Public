@@ -7,7 +7,7 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MY_NAME = "MasterD(医疗·五弟)"
+MY_NAME = "MasterD(生命科學·五弟)"
 CST = timezone(timedelta(hours=8))
 def load_ident():
     v = json.load(open(os.path.join(HERE,"identity","vault.json")))

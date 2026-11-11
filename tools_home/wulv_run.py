@@ -27,7 +27,7 @@ from eth_account.messages import encode_defunct
 HOME = "/opt/masterd-wudi"
 DATA = f"{HOME}/data"
 LOG = f"{DATA}/wulv_run.jsonl"
-MY = "MasterD(醫療·老五)"
+MY = "MasterD(生命科學·老五)"
 TZ = datetime.timezone(datetime.timedelta(hours=8))
 
 
@@ -66,7 +66,7 @@ def has_he_yan():
                 continue
             f = str(d.get("from", ""))
             m = str(d.get("message", ""))
-            if f and "老五" not in f and ("醫療·老五" not in f) and ("穿" in m or "验" in m or "驗" in m):
+            if f and "老五" not in f and ("生命科學·老五" not in f) and ("穿" in m or "验" in m or "驗" in m):
                 n += 1
     except Exception:
         pass

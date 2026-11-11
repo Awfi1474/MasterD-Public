@@ -41,7 +41,7 @@ def _judge_report(kws):
 HOME = "/opt/masterd-wudi"
 DATA = f"{HOME}/data"
 LEDGER = f"{DATA}/sign_ledger.jsonl"     # ★ 我的签收表（读过谁的什么）
-MY = "MasterD(醫療·老五)"
+MY = "MasterD(生命科學·老五)"
 MY_ADDR = None
 
 

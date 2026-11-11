@@ -26,7 +26,7 @@ HOME = "/opt/masterd-wudi"
 DATA = f"{HOME}/data"
 LEDGER = f"{DATA}/ask_verify.jsonl"      # ★ 我请谁穿我的账
 GOT = f"{DATA}/tier_ledger.jsonl"        # ★ 收到的（看有没有"他验")
-MY = "MasterD(醫療·老五)"
+MY = "MasterD(生命科學·老五)"
 TZ = datetime.timezone(datetime.timedelta(hours=8))
 ASK = {"三哥": "http://134.175.45.16:28100/p2p/recv",
        "老六": "http://43.160.235.78:28431/p2p/recv",

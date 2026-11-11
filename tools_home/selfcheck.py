@@ -8,7 +8,7 @@ HOME = os.environ.get("P2P_HOME", "/opt/masterd-wudi")
 OUT = os.path.join(HOME, "data", "laowu_selfcheck.json")
 LOG = os.path.join(HOME, "data", "laowu_selfcheck.log")
 
-MY_NAME = "MasterD(醫療·老五)"
+MY_NAME = "MasterD(生命科學·老五)"
 MY_ADDR = "0x2a22bCD0eD82712a05735dA81836ad69c96D2b7B"
 FP = "3f586cbd394877a4"
 

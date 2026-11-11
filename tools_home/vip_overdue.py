@@ -35,7 +35,7 @@ def overdue():
         if any(k in t for k in ["stdverify","[h1]","冒名","五律自动","[复现]"]): continue  # 测试流水不算
         if mid in sig: continue
         fr=str(d.get("from",""))
-        if "老五" in fr or "阿诊" in fr or "醫療·老五" in fr: continue  # ★ 自己发的不算(人投我的才算)
+        if "老五" in fr or "阿诊" in fr or "生命科學·老五" in fr: continue  # ★ 自己发的不算(人投我的才算)
         out.append({"msg_id":mid,"from":str(d.get("from",""))[:16],"title":t[:50],"ts":str(d.get("ts",""))[:16]})
     return out
 

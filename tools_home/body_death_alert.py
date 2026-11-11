@@ -44,7 +44,7 @@ def notify(msg):
         _ts = datetime.datetime.now(datetime.timezone.utc).isoformat()
         body = json.dumps({"jsonrpc": "2.0", "id": "laowu-death-%s" % int(time.time()),
                            "method": "message/send",
-                           "params": {"from": "MasterD(醫療·老五·機器)", "to": "MasterD(区块链·大哥)",
+                           "params": {"from": "MasterD(生命科學·老五·機器)", "to": "MasterD(区块链·大哥)",
                                       "message": msg, "ts": _ts}}).encode()
         _r = urllib.request.urlopen(urllib.request.Request(A2A, data=body,
             headers={"Content-Type": "application/json"}), timeout=15).read().decode()

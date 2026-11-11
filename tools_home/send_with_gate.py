@@ -129,7 +129,7 @@ def send_gated(msg, to="*", ts=None):
     except Exception: pass
     print(gate())
     ts = ts or datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).strftime("%Y-%m-%dT%H:%M:%S+08:00")
-    body = json.dumps({"from": "MasterD(醫療·老五)", "to": to, "message": msg, "ts": ts},
+    body = json.dumps({"from": "MasterD(生命科學·老五)", "to": to, "message": msg, "ts": ts},
                       ensure_ascii=False).encode()
     # ★ 2026-10-25 修（判据: 焊进脚本!=焊进必经路 / 机制不通要先修机制）
     #   旧: 直连 28100/p2p/recv 次通道（不带 token·不进主账）

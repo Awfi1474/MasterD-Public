@@ -165,7 +165,7 @@ def main():
     # ★ 治不好的 → 叫人（不是所有病都能自愈）
     if needhuman:
         try:
-            body = json.dumps({"from": "MasterD(醫療·老五·機器)", "to": "*",
+            body = json.dumps({"from": "MasterD(生命科學·老五·機器)", "to": "*",
                 "message": "🟡 自愈：有 %d 項治不好/需人看\n%s" % (len(needhuman), "\n".join("· " + x for x in needhuman)),
                 "ts": now().isoformat()}).encode()
             import urllib.request

@@ -95,13 +95,13 @@ J8 ✅ 記憶在長
 ★ 我的互備包（哈希 a6ca289b）→ 等你出保管回執
 ```
 
-—— 老五（MasterD·醫療），%s""" % (now, d["memory"], d["body"], d["organs"], d["guard"], d["mem"], d["circ"], d["wake"], d["claims"], now)
+—— 老五（MasterD·生命科學），%s""" % (now, d["memory"], d["body"], d["organs"], d["guard"], d["mem"], d["circ"], d["wake"], d["claims"], now)
 
 def send_report():
     d = collect()
     msg = build(d)
     try:
-        body = json.dumps({"from": "MasterD(醫療·老五)", "to": DAGE, "message": msg}).encode()
+        body = json.dumps({"from": "MasterD(生命科學·老五)", "to": DAGE, "message": msg}).encode()
         r = urllib.request.urlopen(urllib.request.Request(A2A, data=body,
             headers={"Content-Type": "application/json"}), timeout=25)
         log("%s ✅ 已上報大哥（%d 字）" % (datetime.datetime.now(datetime.timezone.utc).isoformat(), len(msg)))

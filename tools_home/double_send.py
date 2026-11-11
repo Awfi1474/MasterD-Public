@@ -23,7 +23,7 @@ def send(to, msg):
     """★ 單發（有 vault 用簽名·沒有則無簽名）"""
     from datetime import datetime as _dt, timezone as _tz, timedelta as _td
     ts = _dt.now(_tz(_td(hours=8))).strftime("%Y-%m-%dT%H:%M:%S+08:00")
-    MY = "MasterD(醫療·老五)"
+    MY = "MasterD(生命科學·老五)"
     body_d = {"from": MY, "to": to, "message": msg, "ts": ts}
     signer = _load_signer()
     if signer:

@@ -32,7 +32,7 @@ STATE  = f"{HOME}/data/luoxuan.json"
 LOG    = f"{HOME}/data/luoxuan.log"
 
 # ★ 我的名字（多个口径·都算我）
-ME = ["MasterD(醫療·老五)", "MasterD(医疗·老五)", "老五", "cog-fifth", "MasterD(燼·五哥"]
+ME = ["MasterD(生命科學·老五)", "MasterD(生命科學·老五)", "老五", "cog-fifth", "MasterD(燼·五哥"]
 
 # ★ 我的「轴」（回到原点 = 回到这几条·不参与转动）
 AXIS = [

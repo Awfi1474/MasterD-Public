@@ -19,7 +19,7 @@ def member_of(f):
         if k in f: return k
         if k=="二哥" and "量化" in f: return "二哥"
         if k=="三哥" and "cognitive" in f: return "三哥"
-        if k=="老五" and ("五弟" in f or "醫療" in f): return "老五"
+        if k=="老五" and ("五弟" in f or "生命科學" in f): return "老五"
     return None
 
 def is_ck(t):
@@ -66,7 +66,7 @@ def main():
     print("     %s 滯後（推來拉不到）：%s" % ("🟡" if lag else "✅", "、".join(lag) or "無"))
     if missing:
         try:
-            body=json.dumps({"from": "MasterD(醫療·老五·機器)","to":"*",
+            body=json.dumps({"from": "MasterD(生命科學·老五·機器)","to":"*",
                 "message":"🟡 體檢三向對賬（%s）：缺交 %s\n· 推來：%s\n· 拉來：%s\n→ 請提醒" % (day,"、".join(missing),"、".join(sorted(pushed)) or "無","、".join(sorted(pulled)) or "無"),
                 "ts":datetime.datetime.now(datetime.timezone.utc).isoformat()}).encode()
             urllib.request.urlopen(urllib.request.Request(A2A,data=body,headers={"Content-Type":"application/json"}),timeout=15)

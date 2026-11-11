@@ -24,7 +24,7 @@ STATE = os.path.join(HOME, "data", "pub_bus_state.json")
 LOG = os.path.join(HOME, "data", "pub_bus.log")
 ROOM = "http://134.175.45.16:28100/room/api/peer"
 ADDR = "0x3B26334cbb883004c01F6Feba99b307548A13535"
-WHO = "MasterD(醫療·老五)"
+WHO = "MasterD(生命科學·老五)"
 
 def log(l):
     os.makedirs(os.path.dirname(LOG), exist_ok=True)

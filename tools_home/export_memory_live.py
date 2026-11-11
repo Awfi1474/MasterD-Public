@@ -26,7 +26,7 @@ def build():
             "body":  r["body"] or "",
         })
     out = {
-        "who": "老五 · MasterD(医疗·五弟)",
+        "who": "老五 · MasterD(生命科學·五弟)",
         "self": "阿診",
         "exported": datetime.datetime.now().isoformat(),
         "count": len(mems),

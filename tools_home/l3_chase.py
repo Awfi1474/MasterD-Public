@@ -22,7 +22,7 @@ HOME = "/opt/masterd-wudi"
 DATA = f"{HOME}/data"
 LEDGER = f"{DATA}/tier_ledger.jsonl"      # ★ 我的分层账（收信器写的）
 CHASE = f"{DATA}/l3_chase.jsonl"          # ★ 我追的账（★ 追要有账）
-MY = "MasterD(醫療·老五)"
+MY = "MasterD(生命科學·老五)"
 
 # ★ 各家门（老六的"口写死"·照抄族谱）
 DOORS = {

@@ -28,7 +28,7 @@ DATA = f"{HOME}/data"
 LEDGER = f"{DATA}/signoff.jsonl"
 STATE = f"{DATA}/signoff_state.json"
 
-MY = "MasterD(醫療·老五)"
+MY = "MasterD(生命科學·老五)"
 
 
 def ts():

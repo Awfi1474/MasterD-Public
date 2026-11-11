@@ -23,7 +23,7 @@ ORDER = {
         "beat": "每5-10分",
     },
     "記憶": {
-        "owner": "老五（醫療口）｜三哥（認知）",
+        "owner": "老五（生命科學口）｜三哥（認知）",
         "organs": ["memory_db", "custody", "mainline", "wake_verify"],
         "judge": ["四柱（定義/副本/對賬/抗漂）", "分層TTL"],
         "beat": "每10分｜每天對賬",

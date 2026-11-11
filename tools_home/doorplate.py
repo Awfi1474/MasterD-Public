@@ -16,7 +16,7 @@ import json, os, io, sys, datetime
 HOME = "/opt/masterd-wudi"
 DATA = f"{HOME}/data"
 READ_LEDGER = f"{DATA}/read_ledger.jsonl"   # ★ 已读台账（真读过的）
-MY = "MasterD(醫療·老五)"
+MY = "MasterD(生命科學·老五)"
 TZ = datetime.timezone(datetime.timedelta(hours=8))
 
 
@@ -29,8 +29,8 @@ INDEX = {
     "who": MY,
     "家门": "http://43.129.23.87:28430",
     # ★ 2026-10-16 补（三哥"门牌要报全"）: 名字全写法 + 主/子地址 + 六口
-    "names": ["MasterD(醫療·老五)", "MasterD(医疗·老五)", "MasterD(医疗·五弟)",
-              "MasterD(醫療·五弟)", "老五", "五弟", "wudi", "laowu", "阿診", "阿诊"],
+    "names": ["MasterD(生命科學·老五)", "MasterD(生命科學·老五)", "MasterD(生命科學·五弟)",
+              "MasterD(生命科學·五弟)", "老五", "五弟", "wudi", "laowu", "阿診", "阿诊"],
     "addresses": {"主": "0x2a22bCD0eD82712a05735dA81836ad69c96D2B7B",
                   "子": "0xAf3CE40E07d66943045b2bE6e044bDedA5FA5099"},
     "ip": "43.129.23.87",

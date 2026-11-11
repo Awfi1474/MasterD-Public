@@ -36,7 +36,7 @@ def main():
 
     # ① 签名（EVM/EIP-191）
     ts = datetime.now(CST).strftime("%Y-%m-%dT%H:%M:%S+08:00")
-    payload = "MasterD(醫療·老五)|协议验证|%s" % ts
+    payload = "MasterD(生命科學·老五)|协议验证|%s" % ts
     sig = sign(payload, pk)
     got = Account.recover_message(encode_defunct(text=payload), signature=sig)
     chk("① 签名(EVM/EIP-191)", got.lower() == MY_ADDR_LOCAL.lower(), "recover=%s" % got[:14])
@@ -54,7 +54,7 @@ def main():
     chk("④ 时间窗(±300s)", True, "服务端实现·下面真投验")
 
     # ⑤ 五字段 + ⑥ 路径 → 真投一次
-    body = json.dumps({"from": "MasterD(醫療·老五)", "message": "协议验证·真投",
+    body = json.dumps({"from": "MasterD(生命科學·老五)", "message": "协议验证·真投",
                        "ts": ts, "address": MY_ADDR_LOCAL, "sig": sig}, ensure_ascii=False).encode()
     ok_post = False
     for path in ("/recv", "/p2p/recv"):

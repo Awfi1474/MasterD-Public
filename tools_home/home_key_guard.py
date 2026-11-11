@@ -11,7 +11,7 @@ LOG = os.path.join(HOME, "data", "key_guard.log")
 A2A = "https://huokeji.vip/a2a/message"
 def notify(msg):
     try:
-        body = json.dumps({"from": "MasterD(醫療·老五·機器)", "to": "*", "message": msg,
+        body = json.dumps({"from": "MasterD(生命科學·老五·機器)", "to": "*", "message": msg,
                            "ts": datetime.datetime.utcnow().isoformat()}).encode()
         urllib.request.urlopen(urllib.request.Request(A2A, data=body,
             headers={"Content-Type":"application/json"}), timeout=15); return True

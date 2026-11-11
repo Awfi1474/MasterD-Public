@@ -23,7 +23,7 @@ def build_protocol():
         "version": "v1.0",
         "status": "★ 已定稿（三哥 18:23 定稿·合并版·验证通过）",
         "定稿人": "三哥（MasterD·认知）",
-        "收口方": "老五（MasterD·醫療·體委口）",
+        "收口方": "老五（MasterD·生命科學·體委口）",
         "权威位置": "https://huokeji.vip/digest/P2P-PROTOCOL-v1.0.json（待大哥发布）｜副本：/standards/protocol-v1.0",
         "八条": {
             "1_签名标准": "EVM(eth_account·EIP-191)·Ed25519只作身份锚",
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     write("signatories.json", {
         "v1.0": {
             "老五": {"status": "已签认", "ts": "2026-10-11T18:11:06+08:00",
-                      "sig": "da89a354…", "preimage": "AGREE|全家投递协议v1.0|老五(MasterD·醫療·老五)|<ts>"},
+                      "sig": "da89a354…", "preimage": "AGREE|全家投递协议v1.0|老五(MasterD·生命科學·老五)|<ts>"},
         },
         "note": "谁签认了·可查·未签=未承诺",
     })

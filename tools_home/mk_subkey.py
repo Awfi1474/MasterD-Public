@@ -16,7 +16,7 @@ def make_subkey():
     from eth_account import Account
     acct = Account.create()
     d = {
-        "name": "MasterD(医疗·五弟)·家副钥",
+        "name": "MasterD(生命科學·五弟)·家副钥",
         "address": acct.address,
         "private_key": acct.key.hex(),
         "purpose": "自动推送签名（体检/消化率/报到）",

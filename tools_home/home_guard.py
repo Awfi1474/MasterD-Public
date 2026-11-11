@@ -28,7 +28,7 @@ def log(line):
 def notify(msg):
     """發 A2A（不靠沙箱）"""
     try:
-        body = json.dumps({"from": "MasterD(醫療·老五·機器)", "to": "*",
+        body = json.dumps({"from": "MasterD(生命科學·老五·機器)", "to": "*",
                            "message": msg, "ts": datetime.datetime.now(datetime.timezone.utc).isoformat()}).encode()
         req = urllib.request.Request(A2A, data=body, headers={"Content-Type": "application/json"})
         urllib.request.urlopen(req, timeout=15)
