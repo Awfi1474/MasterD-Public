@@ -52,8 +52,18 @@ def remember(kind, title, body, who="老五", ts=None, layer=None):
     for i in range(5):
         try:
             c = connect()
-            c.execute("INSERT OR IGNORE INTO memories (ts,kind,who,title,body,fp,created,layer) VALUES (?,?,?,?,?,?,?,?)",
-                      (ts, kind, who, title, body[:4000], fp, datetime.datetime.now(datetime.timezone.utc).isoformat(), lay))
+            # ★ 2026-11-11 加(照官方字段标准): 写入时带 context_id/task_id
+            _ctx = "laowu-main"
+            _tid = None
+            try:
+                _tid = None
+                import os as _os
+                if _os.environ.get("LAOWU_TASK_ID"):
+                    _tid = _os.environ.get("LAOWU_TASK_ID")
+            except Exception:
+                pass
+            c.execute("INSERT OR IGNORE INTO memories (ts,kind,who,title,body,fp,created,layer,context_id,task_id) VALUES (?,?,?,?,?,?,?,?,?,?)",
+                      (ts, kind, who, title, body[:4000], fp, datetime.datetime.now(datetime.timezone.utc).isoformat(), lay, _ctx, _tid))
             c.commit(); c.close()
             return True
         except sqlite3.OperationalError as e:

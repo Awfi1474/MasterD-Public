@@ -38,11 +38,29 @@ def search(kw):
     # ★ ① 记忆库
     try:
         c = sqlite3.connect("file:" + DB + "?mode=ro", uri=True, timeout=10)
-        for kind, title, mts in c.execute(
-                "SELECT kind,title,ts FROM memories WHERE title LIKE ? OR body LIKE ? ORDER BY id DESC LIMIT 12",
-                ("%" + kw + "%", "%" + kw + "%")):
-            hits.append(("记忆", str(mts)[:19], str(kind), str(title)[:60]))
+        # ★ 2026-11-11 加(照官方字段标准): 支持 -ctx/-task 官方语义过滤 + 检索记账
+        _ctx = os.environ.get("LAOWU_CTX") or ""
+        _task = os.environ.get("LAOWU_TASK") or ""
+        _sql = "SELECT kind,title,ts,context_id,task_id FROM memories WHERE (title LIKE ? OR body LIKE ?)"
+        _args = ["%" + kw + "%", "%" + kw + "%"]
+        if _ctx:
+            _sql += " AND context_id=?"; _args.append(_ctx)
+        if _task:
+            _sql += " AND task_id=?"; _args.append(_task)
+        _sql += " ORDER BY id DESC LIMIT 12"
+        for kind, title, mts, cid, tid in c.execute(_sql, tuple(_args)):
+            hits.append(("记忆", str(mts)[:19], str(kind), str(title)[:60],
+                         "ctx=" + str(cid or "-"), "task=" + str(tid or "-")))
         c.close()
+        # ★ 检索记账(检了啥/找到啥·可复盘)
+        try:
+            import datetime as _dt2
+            with open(HOME + "/data/recall_ledger.jsonl", "a", encoding="utf-8") as _rf:
+                _rf.write(json.dumps({"ts": _dt2.datetime.now().isoformat(),
+                                      "kw": kw[:40], "ctx": _ctx, "task": _task, "hits": len(hits)},
+                                     ensure_ascii=False) + "\n")
+        except Exception:
+            pass
     except Exception as e:
         hits.append(("记忆", "err", "", str(e)[:40]))
     # ★ ② 投递
@@ -72,7 +90,13 @@ def main():
         print("  🔴 账上没有（★ 不许凭想·这就是'没做过'）")
         return 1
     print("  ✅ 账上有 %d 处:" % len(hits))
-    for src, t, who, what in hits:
+    for _h in hits:
+        _h = tuple(_h)
+        if len(_h) >= 6:
+            _src, _t, _who, _what, _ctx, _task = _h[0], _h[1], _h[2], _h[3], _h[4], _h[5]
+            print("   [%s] %s | %-14s %s (%s %s)" % (_src, _t, _who, _what, _ctx, _task))
+            continue
+        src, t, who, what = _h[:4]
         if src == "产出": print("   [%s] %-12s %s" % (src, t, who))
         else: print("   [%s] %s | %-16s %s" % (src, t, who, what))
     # ★ 判据（真查·计入使用率）

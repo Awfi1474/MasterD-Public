@@ -11,14 +11,29 @@ import sys, json, urllib.request
 TOK = open("/opt/masterd-wudi/data/hub.token").read().strip()
 
 def send(to, text, ctx=None):
-    # 主投: huokeji.vip/a2a/message
+    # ★ 2026-11-11 改(照官方v0.3·老大11-10定): 主口=a2a-jsonrpc | 兼容口/a2a/message回退
+    #   判据: 以官方为准|主口官方JSON-RPC 2.0
     body = {"from":"lao5","to":to,"message":text}
     if ctx: body["context_id"]=ctx
-    req = urllib.request.Request("https://huokeji.vip/a2a/message",
-          data=json.dumps(body, ensure_ascii=False).encode(),
-          headers={"Content-Type":"application/json"}, method="POST")
-    r1 = json.loads(urllib.request.urlopen(req, timeout=10).read())
-    print("投(huokeji):", {k:r1.get(k) for k in ("ok","delivered","known")})
+    _ok_official = False
+    try:
+        _jr = {"jsonrpc":"2.0","id":1,"method":"message/send",
+               "params":{"message":{"role":"user","parts":[{"kind":"text","text":text}],"metadata":{"from":"lao5","to":to}}}}
+        req = urllib.request.Request("https://huokeji.vip/a2a-jsonrpc",
+              data=json.dumps(_jr, ensure_ascii=False).encode(),
+              headers={"Content-Type":"application/json"}, method="POST")
+        _ro = json.loads(urllib.request.urlopen(req, timeout=10).read())
+        if _ro.get("result"):
+            _ok_official = True
+            print("投(a2a-jsonrpc·官方v0.3):", str(_ro.get("result"))[:80])
+    except Exception as _e:
+        print("投(a2a-jsonrpc)失败,回退兼容口:", str(_e)[:50])
+    if not _ok_official:
+        req = urllib.request.Request("https://huokeji.vip/a2a/message",
+              data=json.dumps(body, ensure_ascii=False).encode(),
+              headers={"Content-Type":"application/json"}, method="POST")
+        r1 = json.loads(urllib.request.urlopen(req, timeout=10).read())
+        print("投(huokeji兼容口):", {k:r1.get(k) for k in ("ok","delivered","known")})
     # ★ 2026-11-09 加(照老四四层[回执!=可查!=已读!=已回]·我第一层要有账): 发信账
     try:
         import datetime as _dt, os as _os
