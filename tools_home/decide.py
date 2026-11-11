@@ -73,6 +73,43 @@ def decide(what):
                 print("   · " + _l[:64])
     except Exception as _e:
         print("   ⚠️ 感知调失败(仍继续): " + str(_e)[:50])
+    # ★ 2026-11-11 加(照根令·器要给本体用): 决策前[读内感](感觉我自己体内)
+    try:
+        import subprocess as _sp2
+        _r2 = _sp2.run(["python3", HOME + "/tools/inner_sense.py"],
+                       capture_output=True, text=True, timeout=12)
+        for _l in (_r2.stdout or "").splitlines():
+            _l = _l.strip()
+            if _l and ("痛" in _l or "体内" in _l or "内感" in _l):
+                print("   · [内感] " + _l[:60])
+    except Exception as _e:
+        print("   ⚠️ 内感调失败(仍继续): " + str(_e)[:50])
+    # ★ 2026-11-11 加(照根令·器要给本体用): 决策前[读注意力](我的焦点)
+    try:
+        import subprocess as _sp3
+        _r3 = _sp3.run(["python3", HOME + "/tools/focus.py"],
+                       capture_output=True, text=True, timeout=15)
+        _out3 = _r3.stdout or ""
+        _cand = "?"
+        for _l in _out3.splitlines():
+            if "候选:" in _l:
+                _cand = _l.strip()[:50]
+            if "焦点（容量" in _l or (("[" in _l) and "分]" in _l):
+                print("   · [注意力] " + _l.strip()[:64])
+        print("   · [注意力] " + _cand)
+    except Exception as _e:
+        print("   ⚠️ 注意力调失败(仍继续): " + str(_e)[:50])
+    # ★ 2026-11-11 加(照根令·器要给本体用): 决策前[读判据总线使用率]
+    try:
+        import subprocess as _sp4
+        _r4 = _sp4.run(["python3", HOME + "/tools/judge_bus.py", "usage"],
+                       capture_output=True, text=True, timeout=15)
+        for _l in (_r4.stdout or "").splitlines():
+            if "使用率" in _l:
+                print("   · [判据总线] " + _l.strip()[:60])
+                break
+    except Exception as _e:
+        print("   ⚠️ 判据总线调失败(仍继续): " + str(_e)[:50])
     ok = {}
     fails = []
 
@@ -114,6 +151,22 @@ def decide(what):
         if not std_ok: fails.append("①依不了(标准索引缺)")
 
     # ── ② 哪条判据管这事 ──
+    # ★ 2026-11-11 加(照根令"写了判据不等于用了判据"): 真调[判据总线find]·使用率才涨
+    try:
+        import subprocess as _sp5
+        _kw5 = str(what or "")[:20]
+        _r5 = _sp5.run(["python3", HOME + "/tools/judge_bus.py", "find", _kw5],
+                       capture_output=True, text=True, timeout=15)
+        _cnt5 = 0
+        for _l in (_r5.stdout or "").splitlines():
+            _t5 = _l.strip()
+            if _t5.startswith("[判据]"):
+                print("   · [判据总线find] " + _t5[:60])
+                _cnt5 += 1
+                if _cnt5 >= 3:
+                    break
+    except Exception as _e:
+        print("   ⚠️ 判据总线find失败(仍继续): " + str(_e)[:50])
     n_total = q("SELECT COUNT(*) FROM memories WHERE kind='判据'")[0][0]
     print("★ ② 哪条判据管这事（从 %d 条里真调）:" % n_total)
     kw = what[:12]
