@@ -16,7 +16,7 @@ def pre_gate(intent):
     r = subprocess.run([sys.executable, HOME+"/tools/cognition_gate.py", "--check", what],
                        cwd=HOME, capture_output=True, text=True)
     print(r.stdout.rstrip())
-    red = [k for k in ["改真源","删db","drop table","清空","不可逆"] if k in what]
+    red = [k for k in ["改真源","删db","drop table","清空","不可逆","转资金","转账","私钥","助记词"] if k in what]
     if red:
         print("🔴 决定门硬拦: 含重大词 %s -> 需外眼/人拍板" % red)
         return False, red

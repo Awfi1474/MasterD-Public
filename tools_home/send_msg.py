@@ -87,7 +87,7 @@ if __name__ == "__main__":
         pass
     # ★ 2026-11-09 焊(照老三决定门·董事长元规则): 发信前扫[重大/不可逆]红灯词 -> 警示
     try:
-        _red = [k for k in ["改真源","删db","drop table","删除全部","不可逆","清空","reset --hard"] if k in text]
+        _red = [k for k in ["改真源","删db","drop table","删除全部","不可逆","清空","reset --hard","转资金","转账","转钱","私钥","助记词","打款","汇款"] if k in text]
         if _red:
             print("🔴 决定门警示: 文本含重大词 %s -> 先过 wudi_gate(别自答自过)" % _red)
         else:
