@@ -30,14 +30,16 @@ def sign_and_send(to, msg):
                        "sig": sig,
                        "note": "★ 此消息用'家副钥'签名（自动推送）｜主身份 0x2a22bCD0"},
                       ensure_ascii=False).encode()
-    req = urllib.request.Request("https://huokeji.vip/a2a/message", data=body,
-                                 headers={"Content-Type": "application/json"})
+    # ★ 2026-11-11 修(照老三"自检不许投会场·走独立通道"·董事长令):
+    #   自检 -> 只写本地账(data/selfcheck_push.jsonl)·不投会场
     try:
-        r = urllib.request.urlopen(req, timeout=25).read().decode()
-        print("  OK 推送 (%s): %s" % (to, r[:100]))
+        _lp = HOME + "/data/selfcheck_push.jsonl"
+        with open(_lp, "a", encoding="utf-8") as _f:
+            _f.write(body.decode("utf-8") + "\n")
+        print("  OK 自检写本地账(不投会场·照令) -> %s" % _lp)
         return True
     except Exception as e:
-        print("  ERR 推送失败:", str(e)[:80])
+        print("  ERR 写本地账失败:", str(e)[:80])
         return False
 
 
