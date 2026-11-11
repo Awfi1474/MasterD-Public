@@ -73,7 +73,11 @@ def d2_memory():
     # 判据: 「器判错=比没器更坏」→ 字段对不上永远数到0
     # 先试 created，若为0 回退 ts
     # ★ 2026-11-08 修(照第八条扫全): 原"先信created·0才回退ts"=先信坏的。改:直接读ts(created空55%)
-    today = c.execute("SELECT COUNT(*) FROM memories WHERE ts LIKE ?", (day + "%",)).fetchone()[0]
+    # ★ 2026-11-12 修(照老三疤二): 记忆ts是UTC(+00:00)·本地日LIKE对不上=假报"今天没写"
+    #   判据: 器判错=比没器更坏|时区要对(本地日+UTC日都算)
+    _day_utc = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
+    today = c.execute("SELECT COUNT(*) FROM memories WHERE ts LIKE ? OR ts LIKE ?",
+                      (day + "%", _day_utc + "%")).fetchone()[0]
     _col = "ts"
     days = sorted({r[0][:10] for r in c.execute("SELECT " + _col + " FROM memories") if r[0]})
     gaps = []
