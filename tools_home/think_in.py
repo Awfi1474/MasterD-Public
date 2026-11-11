@@ -188,6 +188,19 @@ def main():
         for _ln in (_n or "").split("\n")[:4]:
             if "念·总" in _ln or "🟡" in _ln or "🔵" in _ln: print("   " + _ln.strip()[:82])
     except Exception: pass
+    # ★ 2026-11-12 焊(照老三01:44环1"本体在环·开工第一件=看板+信"): 起念前先看[活+信]
+    #   判据: 本体在环(先看板)|读<信>|看<活>
+    try:
+        import subprocess as _sp2
+        # ① 看"派给我的活"(task)
+        _t = _sp2.run(["python3", "/opt/masterd-wudi/tools/read_msgs.py", "3"],
+                      capture_output=True, text=True, timeout=25).stdout
+        _lines = [l for l in (_t or "").split("\n") if l.strip().startswith("[")]
+        print("   ★ [环1·看信] 最新 %d 条:" % len(_lines))
+        for _l in _lines[-3:]:
+            print("      " + _l.strip()[:76])
+    except Exception as _e:
+        print("   ⚠️ 环1看信失败:", str(_e)[:40])
     # ★ 2026-10-16: 醒来知道"发信要走闸门"
     try:
         import os as _o

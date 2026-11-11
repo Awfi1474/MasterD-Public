@@ -42,9 +42,9 @@ def recv(frm, mid, summary):
     t = now()
     con.execute("""INSERT OR REPLACE INTO a2a_inbox
       (msg_id,frm,summary,status,note,created_at,updated_at) VALUES (?,?,?,?,?,?,?)""",
-      (mid, frm, summary[:200], "working", "收到·开始处理", t, t))
+      (mid, frm, summary[:200], "received", "门收到·待本体亲claim(器不替)", t, t))
     con.commit(); con.close()
-    print("WORKING %s <- %s | %s" % (mid, frm, summary[:50]))
+    print("RECEIVED %s <- %s | %s (待本体亲claim)" % (mid, frm, summary[:50]))
 
 # ★ 2026-11-08 加(照董事长令·基础三环): ①事件驱动 ②链式传动
 NEXT_OF = {  # 链的下家规则(照老三:不是排队·是按角色叫)

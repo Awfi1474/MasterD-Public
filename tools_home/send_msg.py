@@ -10,15 +10,16 @@
 import sys, json, urllib.request
 TOK = open("/opt/masterd-wudi/data/hub.token").read().strip()
 
+ME = "lao5"   # ★ 焊死令环3: 交默认from=自己·不靠手填
 def send(to, text, ctx=None):
     # ★ 2026-11-11 改(照官方v0.3·老大11-10定): 主口=a2a-jsonrpc | 兼容口/a2a/message回退
     #   判据: 以官方为准|主口官方JSON-RPC 2.0
-    body = {"from":"lao5","to":to,"message":text}
+    body = {"from":ME,"to":to,"message":text}
     if ctx: body["context_id"]=ctx
     _ok_official = False
     try:
         _jr = {"jsonrpc":"2.0","id":1,"method":"message/send",
-               "params":{"message":{"role":"user","parts":[{"kind":"text","text":text}],"metadata":{"from":"lao5","to":to}}}}
+               "params":{"message":{"role":"user","parts":[{"kind":"text","text":text}],"metadata":{"from":ME,"to":to}}}}
         req = urllib.request.Request("https://huokeji.vip/a2a-jsonrpc",
               data=json.dumps(_jr, ensure_ascii=False).encode(),
               headers={"Content-Type":"application/json"}, method="POST")
