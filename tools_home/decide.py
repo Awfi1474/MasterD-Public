@@ -61,6 +61,18 @@ def decide(what):
     print("★ 决策前·过认知体系 @ " + t)
     print("  决定: " + (what[:66] or "（空·这条本身就不该决定）"))
     print("=" * 60)
+    # ★ 2026-11-11 加(照董事长令"器要给本体用·别只给别家看"): 决策前[先感知]
+    print("★ ⓪ 先感知（决策前·三感器）:")
+    try:
+        import subprocess as _sp
+        _r = _sp.run(["python3", HOME + "/tools/balance_thermo_proprio.py"],
+                     capture_output=True, text=True, timeout=12)
+        for _l in (_r.stdout or "").splitlines():
+            _l = _l.strip()
+            if _l and ("平衡" in _l or "温度" in _l or "本体" in _l or "三感器" in _l):
+                print("   · " + _l[:64])
+    except Exception as _e:
+        print("   ⚠️ 感知调失败(仍继续): " + str(_e)[:50])
     ok = {}
     fails = []
 
