@@ -51,7 +51,7 @@ def rec_server():
             _s = _sk.create_connection(("127.0.0.1", 28430), timeout=3)
             _s.close()
             _up = int(time.time() - os.path.getmtime("/opt/masterd-wudi/data/heartbeat.json")) if os.path.exists("/opt/masterd-wudi/data/heartbeat.json") else -1
-            return {"ok": True, "who": "MasterD(医疗·五弟)", "local": True,
+            return {"ok": True, "who": "MasterD(生命科學·五弟)", "local": True,
                     "evidence": "本机 28430 可连·家活着（本进程即在家上）"}
         except Exception as e:
             return {"ok": False, "why": str(e)[:40], "evidence": "本机 28430 连不上"}
@@ -128,7 +128,7 @@ def rec_homecalls():
 def do_status():
     t0 = time.time()
     return {
-        "ok": True, "trigger": "状态", "who": "MasterD(医疗·五弟)",
+        "ok": True, "trigger": "状态", "who": "MasterD(生命科學·五弟)",
         # ★ 2026-10-12 对齐语言标准：ts=UTC Z（跟 A2A 官方示例）·另留 ts_local(本地)
         "ts": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z",
         "ts_local": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(),
