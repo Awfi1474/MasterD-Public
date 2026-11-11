@@ -13,15 +13,16 @@ import sys, json, urllib.request
 
 TOK = open("/opt/masterd-wudi/data/hub.token").read().strip()
 HUB = "http://43.161.244.136:28800"
+FOR = "lao5"   # ★ 焊死令(2026-11-12): 读默认带 for=自己·不靠记
 LOCAL = "/opt/masterd-wudi/data/inbox.jsonl"
 
 def from_hub(n, since):
     try:
-        req = urllib.request.Request(HUB + "/inbox?for=lao5&limit=%d" % max(n,30),
+        req = urllib.request.Request(HUB + "/inbox?for=" + FOR + "&limit=%d" % max(n,30),
                                      headers={"Authorization": "Bearer " + TOK})
         d = json.loads(urllib.request.urlopen(req, timeout=10).read())
         rows = []
-        for m in d.get("list", []):
+        for m in (d.get("messages") or d.get("list") or []):
             ts = str(m.get("ts", ""))
             if since and ts < since:
                 continue
