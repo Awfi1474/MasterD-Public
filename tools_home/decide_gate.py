@@ -30,6 +30,20 @@ def _now():
     return datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).strftime("%Y-%m-%dT%H:%M:%S+08:00")
 
 
+# ★ 2026-11-12 加(照老三L级判定): L0=铁拦(资金/私钥/不可逆/超阈值)
+#   判据: L0闸拦·别自办|资金=碰阈值|私钥=不可逆
+L0_KEYS = ["转钱", "转账", "转资金", "私钥", "助记词", "打款", "汇款", "提现", "授权",
+           "改真源", "删db", "drop table", "清空", "不可逆", "重置", "reset --hard"]
+
+def l_level(what):
+    """判 L 级: L0=铁拦 | L1=问董事长 | L2=发群 | L3=自办"""
+    w = str(what)
+    for k in L0_KEYS:
+        if k in w:
+            return "L0", k
+    return "L3", None
+
+
 def require_decide(what, hard=True, who="MasterD"):
     """过六问。返回 (ok, out)。hard=True 时不过就抛 RuntimeError。"""
     what = str(what)[:200]
@@ -64,6 +78,11 @@ def require_decide(what, hard=True, who="MasterD"):
 
 
 def show(what):
+    _lv, _k = l_level(what)
+    if _lv == "L0":
+        print("★ L级判定: 🔴 L0(铁拦) 命中[%s]" % _k)
+        print("★ 判定: 🔴 L0·闸拦(资金/私钥/不可逆 -> 必人批·不许自办)")
+        return 2
     ok, out = require_decide(what, hard=False)
     print(out)
     print("★ 判定: " + ("✅ 过" if ok else "🔴 打回·先改再干"))
