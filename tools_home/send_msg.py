@@ -116,7 +116,11 @@ if __name__ == "__main__":
         else:
             print("✅ 认知闸: 过")
         # ★ 2026-11-11 焊(照say.py三关口径): 言行闸·不过不发
-        _s = _sp.run([_sy.executable, _H+"/tools/speech_gate.py", text[:2000]],
+        # ★ 2026-11-12 修(言行闸不一致bug·照实):
+        #   真根: open().read()保留末尾换行->401字符>400阈值->判太长
+        #         而命令行$(cat)会去换行->400->过。差一个换行符。
+        #   修: 传之前strip()·跟命令行一致
+        _s = _sp.run([_sy.executable, _H+"/tools/speech_gate.py", text.strip()[:2000]],
                      cwd=_H, capture_output=True, text=True)
         if _s.returncode != 0:
             print("🔴 言行闸打回·未发送(不照着规则·就不是我): " + (_s.stdout or "")[-200:])
