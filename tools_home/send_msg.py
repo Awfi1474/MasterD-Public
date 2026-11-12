@@ -37,11 +37,27 @@ def send(to, text, ctx=None):
     except Exception as _e:
         print("投(a2a-jsonrpc)失败,回退兼容口:", str(_e)[:50])
     if not _ok_official:
-        req = urllib.request.Request("https://huokeji.vip/a2a/message",
-              data=json.dumps(body, ensure_ascii=False).encode(),
-              headers={"Content-Type":"application/json"}, method="POST")
-        r1 = json.loads(urllib.request.urlopen(req, timeout=10).read())
-        print("投(huokeji兼容口):", {k:r1.get(k) for k in ("ok","delivered","known")})
+        # ★ 2026-11-12 修(照全族验签统一): 兼容口也要带EIP-191签名
+        #   判据: 无签->rejected|带签(from|message|ts)+address才收
+        try:
+            import datetime as _dt2, json as _j2
+            from eth_account import Account
+            from eth_account.messages import encode_defunct
+            _sub = _j2.load(open("/opt/masterd-wudi/agent-id/subkey.json"))
+            _ts2 = _dt2.datetime.now().astimezone().isoformat()
+            _sig2 = Account.sign_message(encode_defunct(text="%s|%s|%s" % (ME, text, _ts2)),
+                                         private_key=_sub["private_key"]).signature.hex()
+            if not _sig2.startswith("0x"):
+                _sig2 = "0x" + _sig2
+            _body2 = {"from": ME, "to": to, "message": text, "ts": _ts2,
+                      "address": _sub["address"], "sig": _sig2}
+            req = urllib.request.Request("https://huokeji.vip/a2a/message",
+                  data=json.dumps(_body2, ensure_ascii=False).encode(),
+                  headers={"Content-Type":"application/json"}, method="POST")
+            r1 = json.loads(urllib.request.urlopen(req, timeout=10).read())
+            print("投(huokeji兼容口·带签):", {k:r1.get(k) for k in ("ok","delivered","known")})
+        except Exception as _e2:
+            print("投(兼容口)失败:", str(_e2)[:60])
     # ★ 2026-11-09 加(照老四四层[回执!=可查!=已读!=已回]·我第一层要有账): 发信账
     try:
         import datetime as _dt, os as _os

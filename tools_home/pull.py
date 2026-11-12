@@ -18,10 +18,19 @@ def pull():
     body=json.dumps({"worker":ME}).encode()
     req=urllib.request.Request(HUB+"/task/pull",data=body,
         headers={"X-Hub-Token":TOK,"Content-Type":"application/json"},method="POST")
-    try:
-        r=json.loads(urllib.request.urlopen(req,timeout=10).read())
-    except Exception as e:
-        log("拉失败:"+str(e)[:60]); return
+    # ★ 2026-11-12 加固(照实·治"拉超时"): timeout 10->20 + 重试1次
+    #   判据: 单次超时!=死|重试1次|别因抖动漏活
+    r = None
+    for _try in range(2):
+        try:
+            r = json.loads(urllib.request.urlopen(req, timeout=20).read())
+            break
+        except Exception as e:
+            log("拉失败(第%d次):%s" % (_try + 1, str(e)[:50]))
+            if _try == 0:
+                import time as _t2; _t2.sleep(2)
+    if r is None:
+        return
     task=r.get("task")
     if not task:
         return  # 没任务·静默
