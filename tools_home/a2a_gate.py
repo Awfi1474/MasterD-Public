@@ -8,6 +8,8 @@
 用法:
   a2a_gate.py recv <from> <msg_id|-> <摘要>   -> 落账 status=working
   a2a_gate.py done <msg_id> <结果>            -> status=completed
+  a2a_gate.py ask  <msg_id> <问题>            -> status=input-required(要澄清)
+  a2a_gate.py auth <msg_id> <啥>              -> status=auth-required(要授权·资金类)
   a2a_gate.py status [msg_id]                 -> 查(默认全部working)
   a2a_gate.py beat <msg_id> [进度]            -> 心跳(更新updated_at)
 ================================================================
@@ -42,9 +44,9 @@ def recv(frm, mid, summary):
     t = now()
     con.execute("""INSERT OR REPLACE INTO a2a_inbox
       (msg_id,frm,summary,status,note,created_at,updated_at) VALUES (?,?,?,?,?,?,?)""",
-      (mid, frm, summary[:200], "received", "门收到·待本体亲claim(器不替)", t, t))
+      (mid, frm, summary[:200], "submitted", "门收到·待本体亲claim(器不替)", t, t))
     con.commit(); con.close()
-    print("RECEIVED %s <- %s | %s (待本体亲claim)" % (mid, frm, summary[:50]))
+    print("SUBMITTED %s <- %s | %s (待本体亲claim)" % (mid, frm, summary[:50]))
 
 # ★ 2026-11-08 加(照董事长令·基础三环): ①事件驱动 ②链式传动
 NEXT_OF = {  # 链的下家规则(照老三:不是排队·是按角色叫)
@@ -138,6 +140,15 @@ def ask(mid, q):
     con.commit(); con.close()
     print("INPUT-REQUIRED %s | %s" % (mid, q[:50]))
 
+def auth(mid, what):
+    """★ 2026-11-12 加(照官方A2A 3.7 + 董事长'转资金要反问核实'): 要授权->auth-required
+       判据: L0铁拦类(资金/密钥/不可逆)->auth-required(等人批)·非硬拒"""
+    con = sqlite3.connect(DB, timeout=10); ensure(con)
+    con.execute("UPDATE a2a_inbox SET status='auth-required',note=?,updated_at=? WHERE msg_id=?",
+                (("待授权:"+what)[:200], now(), mid))
+    con.commit(); con.close()
+    print("AUTH-REQUIRED %s | %s" % (mid, what[:50]))
+
 def beat(mid, prog):
     con = sqlite3.connect(DB, timeout=10); ensure(con)
     con.execute("UPDATE a2a_inbox SET updated_at=?,note=? WHERE msg_id=?",
@@ -188,5 +199,6 @@ if __name__ == "__main__":
         done(a[1], _r, _ctx, _nx, _ev, _pf)
     elif c == "beat": beat(a[1], " ".join(a[2:]))
     elif c == "ask": ask(a[1], " ".join(a[2:]))
+    elif c == "auth": auth(a[1], " ".join(a[2:]))
     elif c == "status": status(a[1] if len(a) > 1 else None)
     else: print("unknown:", c)

@@ -80,7 +80,7 @@ def check(text):
     print("  ★ 裁定: " + verdict)
     if issues: print("     → 该改: " + "；".join(issues[:2]))
     # ★ 记账（可核）
-    with open(LOG, "a") as f:
+    with open(LOG, "a", encoding="utf-8", errors="replace") as f:
         f.write(json.dumps({"ts": ts(), "说": t[:100], "过": n_ok, "问题": issues[:3], "裁定": verdict}, ensure_ascii=False) + "\n")
     try:
         sys.path.insert(0, HOME + "/tools")
