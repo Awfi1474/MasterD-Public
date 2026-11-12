@@ -51,4 +51,14 @@ if __name__ == "__main__":
         ok2 = (r.returncode == 0)
     log({"ts": datetime.datetime.now().isoformat(), "动作":"edit", "远端": remote, "结果":"写入" if ok2 else "scp失败"})
     print("✅ 过闸 -> scp 到 %s : %s" % (remote, "OK" if ok2 else "FAIL"))
+    # ★ 2026-11-13 加(照实·真根: 写记忆不同步索引->检索不到):
+    #   写完 memory/*.md 自动同步进 memory-v2 索引
+    if ok2 and "/memory/" in remote and remote.endswith(".md"):
+        try:
+            r2 = subprocess.run([sys.executable, HOME + "/memory-v2/sync_mem.py"],
+                                cwd=HOME, capture_output=True, text=True, timeout=60)
+            out = (r2.stdout or "").strip().split("\n")[-1]
+            print("  🔄 索引同步: " + out[:80])
+        except Exception as _e3:
+            print("  ⚠️ 索引同步失败(不影响写入): " + str(_e3)[:60])
     sys.exit(0 if ok2 else 1)
