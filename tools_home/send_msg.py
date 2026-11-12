@@ -18,8 +18,15 @@ def send(to, text, ctx=None):
     if ctx: body["context_id"]=ctx
     _ok_official = False
     try:
-        _jr = {"jsonrpc":"2.0","id":1,"method":"message/send",
-               "params":{"message":{"role":"user","parts":[{"kind":"text","text":text}],"metadata":{"from":ME,"to":to}}}}
+        # ★ 2026-11-12 改(照董事长令"发消息一律官方字段·暂停家族字段"):
+        #   官方: role(user/agent)+parts[{kind,text}]+messageId+contextId
+        #   别再塞家族 from/to 到 metadata(官方无此)
+        import uuid as _uuid
+        _msg = {"role": "user", "messageId": "msg-" + _uuid.uuid4().hex[:12],
+                "parts": [{"kind": "text", "text": text}]}
+        if ctx:
+            _msg["contextId"] = str(ctx)
+        _jr = {"jsonrpc":"2.0","id":1,"method":"message/send","params":{"message": _msg}}
         req = urllib.request.Request("https://huokeji.vip/a2a-jsonrpc",
               data=json.dumps(_jr, ensure_ascii=False).encode(),
               headers={"Content-Type":"application/json"}, method="POST")
