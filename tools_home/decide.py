@@ -55,7 +55,8 @@ def q(sql, a=()):
         return []
 
 
-SKIP_PATTERNS = ("认知体系巡检", "定时·", "--help", "-h", "自检")
+SKIP_PATTERNS = ("认知体系巡检", "定时·认知体系巡检", "--help", "-h")
+# ★ 注(照实): "自检"不能单独当skip(叫醒器传"叫醒器自检·每次开工过六问"含自检·但那是真决定)
 def _is_decision(w):
     """门槛: 什么才算'决定'(要过六问) —— 照实: 自检/巡检/帮助 不算"""
     w = str(w or "").strip()
@@ -169,6 +170,20 @@ def decide(what):
             print("   🔴 标准索引读不到 → 依不了")
         ok[1] = std_ok
         if not std_ok: fails.append("①依不了(标准索引缺)")
+
+    # ★ 2026-11-13 接(照实: 判据写进L1 != 改前会查): 改前先查L1相关判据
+    try:
+        import subprocess as _spL
+        _rL = _spL.run([sys.executable, HOME + "/tools/l1_guard.py", str(what)[:60]],
+                       capture_output=True, text=True, timeout=20, cwd=HOME)
+        _oL = (_rL.stdout or "")
+        _linesL = [l.strip() for l in _oL.splitlines() if l.strip().startswith("★ ") and "改前查L1" not in l and "判据:" not in l]
+        if _linesL:
+            print("★ ②a 改前查L1:")
+            for _l in _linesL[:4]:
+                print("   " + _l[:100])
+    except Exception:
+        pass
 
     # ── ② 哪条判据管这事 ──
     # ★ 2026-11-11 加(照根令"写了判据不等于用了判据"): 真调[判据总线find]·使用率才涨
@@ -296,10 +311,16 @@ def decide(what):
     rec = {"ts": t, "决定": what[:120], "六问齐": n_ok,
            "结果": "过" if n_ok >= 6 else "打回", "缺": fails}
     try:
-        with open(HOME + "/data/decide_log.jsonl", "a") as f:
-            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+        # ★ 2026-11-13 接哈希链(照 arXiv:2512.20985 不可篡改审计): 改走 hashchain
+        sys.path.insert(0, HOME + "/tools")
+        from hashchain_log import append as _hc_append
+        _hc_append(HOME + "/data/decide_log.jsonl", rec)
     except Exception:
-        pass
+        try:
+            with open(HOME + "/data/decide_log.jsonl", "a") as f:
+                f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+        except Exception:
+            pass
     try:
         sys.path.insert(0, HOME + "/tools")
         import judge_bus as _jb

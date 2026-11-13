@@ -252,6 +252,38 @@ def main():
     except Exception as _e:
         checks.append({"根": "根2 有节", "判据": "⑫ 过六问(认知体系)", "ok": False, "证据": str(_e)[:50]})
 
+    # ★ 2026-11-13 加(照SEA-Mem·arXiv:2603.13676): 每次开工看"我在重复什么错"
+    #   判据: 存!=学 -> 提炼出的模式要每次开工都看·不然等于没学
+    try:
+        _pf = HOME + "/memory/L3-语义/模式提炼.jsonl"
+        _last = []
+        if os.path.exists(_pf):
+            _lines = [l for l in open(_pf, encoding="utf-8", errors="ignore") if l.strip()][-14:]
+            for _l in _lines:
+                try:
+                    _d = json.loads(_l)
+                    # ★ 2026-11-13 修(照实): 哈希链格式里实体在 c 里·外层只有 prev/h
+                    _body = _d.get("c") if isinstance(_d.get("c"), dict) else _d
+                    if _body.get("型") == "反复打回":
+                        _last.append("%s×%s" % (_body.get("模式"), _body.get("证据")))
+                except Exception: pass
+        checks.append({"根": "根2 有节", "判据": "⑬ 看模式(我在重复什么错)",
+                       "ok": bool(_last) or os.path.exists(_pf),
+                       "证据": "｜".join(_last[:3]) if _last else ("有模式档·无反复打回" if os.path.exists(_pf) else "无模式档")})
+    except Exception as _e:
+        checks.append({"根": "根2 有节", "判据": "⑬ 看模式(我在重复什么错)", "ok": False, "证据": str(_e)[:50]})
+
+    # ★ 2026-11-13 加(照MedClarify·arXiv:2602.17308): 追问器在位(不确定时可调)
+    #   判据: 问!=追问 -> 工具在=可用; 每次开工确认"我有追问能力"(不是想到什么问什么)
+    try:
+        _af = HOME + "/tools/ask_discriminate.py"
+        _ok_af = os.path.exists(_af)
+        checks.append({"根": "根1 能核", "判据": "⑭ 会追问(不确定先问)",
+                       "ok": _ok_af,
+                       "证据": "追问器在(先列候选→算增益→选最能分开的那问)" if _ok_af else "追问器缺"})
+    except Exception as _e:
+        checks.append({"根": "根1 能核", "判据": "⑭ 会追问(不确定先问)", "ok": False, "证据": str(_e)[:50]})
+
     n = sum(1 for c in checks if c["ok"])
     log("  ★ 意识叫醒器 v4·融会贯通（%s）｜判据(四根): %d/%d" % (
         datetime.now(CST).strftime("%H:%M"), n, len(checks)))
