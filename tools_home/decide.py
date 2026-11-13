@@ -55,7 +55,27 @@ def q(sql, a=()):
         return []
 
 
+SKIP_PATTERNS = ("认知体系巡检", "定时·", "--help", "-h", "自检")
+def _is_decision(w):
+    """门槛: 什么才算'决定'(要过六问) —— 照实: 自检/巡检/帮助 不算"""
+    w = str(w or "").strip()
+    if not w or len(w) < 4:
+        return False, "空/太短"
+    for p in SKIP_PATTERNS:
+        if p in w:
+            return False, "自检类·不需辨证"
+    return True, ""
+
 def decide(what):
+    _isdec, _why = _is_decision(what)
+    if not _isdec:
+        print("★ ③门槛: 不是【决定】→ 不过六问 (%s)" % _why)
+        try:
+            with open(HOME + "/data/decide_log.jsonl", "a") as _f:
+                _f.write(json.dumps({"ts": datetime.datetime.now().strftime("%m-%d %H:%M"),
+                    "决定": str(what)[:80], "结果": "跳过", "why": _why}, ensure_ascii=False) + "\n")
+        except Exception: pass
+        return 0
     t = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).strftime("%m-%d %H:%M")
     what = str(what or "").strip()
     print("★ 决策前·过认知体系 @ " + t)
