@@ -221,9 +221,21 @@ def main():
     except Exception as _e:
         checks.append({"根": "根1 能核", "判据": "⑩ 免疫(防线在)", "ok": False, "证据": str(_e)[:50]})
 
+    # ★ 2026-11-13 加(照老六"每次开工真读画像"·董事长点"机制>自觉")
+    try:
+        _pp = HOME + "/memory/ARCHIVE-兄弟档案/董事长-人格画像.md"
+        _ls = HOME + "/memory/ARCHIVE-兄弟档案/三哥-燼-人格画像.md"
+        _okp = os.path.exists(_pp) and os.path.getsize(_pp) > 3000
+        _okl = os.path.exists(_ls) and os.path.getsize(_ls) > 2000
+        _ev = "董事长画像=%s｜三哥画像=%s" % ("在" if _okp else "缺", "在" if _okl else "缺")
+        checks.append({"根": "根1 能核", "判据": "⑪ 读画像(活基准)",
+                       "ok": _okp and _okl, "证据": _ev})
+    except Exception as _e:
+        checks.append({"根": "根1 能核", "判据": "⑪ 读画像(活基准)", "ok": False, "证据": str(_e)[:50]})
+
     n = sum(1 for c in checks if c["ok"])
-    log("  ★ 意识叫醒器 v4·融会贯通（%s）｜八条判据(四根): %d/8" % (
-        datetime.now(CST).strftime("%H:%M"), n))
+    log("  ★ 意识叫醒器 v4·融会贯通（%s）｜判据(四根): %d/%d" % (
+        datetime.now(CST).strftime("%H:%M"), n, len(checks)))
     cur_root = None
     for c in checks:
         if c["根"] != cur_root:

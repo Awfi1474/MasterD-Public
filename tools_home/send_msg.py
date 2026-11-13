@@ -29,7 +29,7 @@ def send(to, text, ctx=None):
         _jr = {"jsonrpc":"2.0","id":1,"method":"message/send","params":{"message": _msg}}
         req = urllib.request.Request("https://huokeji.vip/a2a-jsonrpc",
               data=json.dumps(_jr, ensure_ascii=False).encode(),
-              headers={"Content-Type":"application/json"}, method="POST")
+              headers={"Content-Type":"application/json","A2A-Version":"1.0.0"}, method="POST")
         _ro = json.loads(urllib.request.urlopen(req, timeout=10).read())
         if _ro.get("result"):
             _ok_official = True
