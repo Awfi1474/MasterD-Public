@@ -20,7 +20,9 @@ def save_state(s):
     json.dump(s, open(STATE, "w", encoding="utf-8"), ensure_ascii=False)
 
 def pull(limit=100):
-    u = HUB + "&limit=" + str(limit)
+    # ★ 2026-11-14 改(照老三硬标准·01:03): 真读=read=true → 必须带 mark_read=1
+    #   判据: GET 200只证"器拉了一次"|read=true才是"本体真读"
+    u = HUB + "&limit=" + str(limit) + "&mark_read=1"
     req = urllib.request.Request(u, headers={"X-Hub-Token": TOK})
     d = json.loads(urllib.request.urlopen(req, timeout=20).read().decode("utf-8", "ignore"))
     return d.get("list") or d.get("messages") or []
@@ -43,3 +45,24 @@ if __name__ == "__main__":
     with open(cache, "a", encoding="utf-8") as f:
         for m in new:
             f.write(json.dumps(m, ensure_ascii=False) + "\n")
+
+    # ★ 2026-11-14 焊(照老三的病: 读到≠要回·"有信"没人用):
+    #   ① 新消息 → 写「未回清单」② 叫醒本体
+    if new:
+        try:
+            UNR = HOME + "/data/hub_unreplied.jsonl"
+            with open(UNR, "a", encoding="utf-8") as uf:
+                for m in new:
+                    uf.write(json.dumps({
+                        "ts": str(m.get("ts",""))[:19],
+                        "from": str(m.get("from",""))[:30],
+                        "snip": str(m.get("message",""))[:80],
+                        "state": "UNREAD",   # UNREAD -> ACKED(读了) -> REPLIED(回了)
+                    }, ensure_ascii=False) + "\n")
+            # 叫醒本体(真推·不是只记)
+            import subprocess
+            subprocess.Popen(["python3", HOME + "/code/core_v2.py", "--once"],
+                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            print("  ★ 已叫醒本体 + 记入未回清单(%d条)" % len(new))
+        except Exception as e:
+            print("  ⚠ 叫醒/记未回 失败:", str(e)[:60])

@@ -284,6 +284,20 @@ def main():
     except Exception as _e:
         checks.append({"根": "根1 能核", "判据": "⑭ 会追问(不确定先问)", "ok": False, "证据": str(_e)[:50]})
 
+    # ★ 2026-11-14 加(照老三"回执没写=算没读"): 未回超时=不算醒
+    try:
+        import subprocess as _spU
+        _rU = _spU.run([sys.executable, HOME+"/tools/unreplied_gate.py"],
+                       capture_output=True, text=True, timeout=30, cwd=HOME)
+        _oU = (_rU.stdout or "")
+        import re as _reU
+        _mU = _reU.search(r"超时\(\d+分\) (\d+) 条", _oU)
+        _nU = int(_mU.group(1)) if _mU else 0
+        checks.append({"根": "根1 能核", "判据": "⑮ 未回清零(读到必回)",
+                       "ok": _nU == 0, "证据": "未回超时 %d 条" % _nU})
+    except Exception as _e:
+        checks.append({"根": "根1 能核", "判据": "⑮ 未回清零(读到必回)", "ok": False, "证据": str(_e)[:50]})
+
     n = sum(1 for c in checks if c["ok"])
     log("  ★ 意识叫醒器 v4·融会贯通（%s）｜判据(四根): %d/%d" % (
         datetime.now(CST).strftime("%H:%M"), n, len(checks)))
