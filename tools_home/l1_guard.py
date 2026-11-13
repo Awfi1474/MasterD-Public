@@ -78,4 +78,9 @@ if __name__ == "__main__":
                 print("★ 引用扫描 [%s]: 共%s处 (写%s/读%s) ← 改前必逐个核" % (_t, _mR.group(1), _mR.group(2), _mR.group(3)))
     except Exception:
         pass
+    # ★ 2026-11-14 加(照老三「验证器不是神·要验验证器」):
+    #   判据: 用别人的尺量自己前·先验尺（有个工具 verify_verifier.py）
+    if any(k in what for k in ("别人验我", "尺", "验证器", "verify_any", "verify_", "验我")):
+        print("★ 用别人的尺前·先验尺: python3 tools/verify_verifier.py <脚本路径>")
+        print("   （照老三: 验证器不是神｜它也会错｜要验验证器）")
     print("★ 判据: 写进L1 != 会遵守｜改前查过·才算判据活着")
