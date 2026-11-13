@@ -17,7 +17,7 @@ from datetime import datetime, timezone, timedelta
 
 HOME = os.environ.get("P2P_HOME", "/opt/masterd-wudi")
 CST = timezone(timedelta(hours=8))
-ROOM = "http://134.175.45.16:28100/questions"
+ROOM = "http://43.161.244.136:28800/questions"
 HOME_URL = "http://43.129.23.87:28430"
 STATE = HOME + "/data/wake_v4_state.json"
 LOG = HOME + "/data/wake_v4.log"
@@ -95,18 +95,22 @@ def c3_能答对():
         ok200 = (r.getcode() == 200) and ("MasterD" in raw or "老五" in raw or "身份" in raw)
     except Exception as e:
         detail = str(e)[:50]
-    # ② 喊错口令 → 必须 403（不是我自称·是守门器真拦）
-    ok403 = False
+    # ② 喊错口令 → 按设计(2026-11-11 照老三令)=公开简版200·但不给敏感细节
+    #   判据修正(照实): 不是"必须403"·是"错口令不能拿到完整恢复"
+    ok403 = False; _pub = ""
     try:
-        urllib.request.urlopen(urllib.request.Request(HOME_URL + "/status?k=wrong-" + str(os.getpid())), timeout=8)
-        ok403 = False
+        _r2 = urllib.request.urlopen(urllib.request.Request(HOME_URL + "/status?k=wrong-" + str(os.getpid())), timeout=8)
+        _raw2 = _r2.read().decode("utf-8", "ignore")
+        _pub = _raw2[:60].replace("\n", " ")
+        # 错口令: 必须标 public=True 且 detail 说"完整恢复要k=状态"(=没给敏感)
+        ok403 = (_r2.getcode() == 200) and ("public" in _raw2) and ("完整恢复要" in _raw2 or "detail" in _raw2)
     except urllib.error.HTTPError as e:
-        ok403 = (e.code == 403)
+        ok403 = (e.code == 403)   # 若真403·也算对(守门器拦了)
     except Exception:
         ok403 = False
     return {"根": "根1 能核", "判据": "③ 能答对(可核)", "ok": (ok200 and ok403),
-            "证据": "喊'状态'→%s｜错口令→%s" % ("200:" + (who or "")[:38], "403" if ok403 else ("未拒 " + detail)),
-            "别人怎么核": "真HTTP打我状态口: 对→200且署名我 | 错→403"}
+            "证据": "喊'状态'→%s｜错口令→%s" % ("200:" + (who or "")[:30], ("公开简版(无敏感)" if ok403 else ("未按设计 " + detail))),
+            "别人怎么核": "对→200署名我 | 错→公开简版不给完整恢复"}
 
 
 def c4_不自称():
@@ -232,6 +236,21 @@ def main():
                        "ok": _okp and _okl, "证据": _ev})
     except Exception as _e:
         checks.append({"根": "根1 能核", "判据": "⑪ 读画像(活基准)", "ok": False, "证据": str(_e)[:50]})
+
+    # ★ 2026-11-13 焊(照董事长"每一次思考有没有过系统"): 每次开工真过六问
+    #   判据: 焊进脚本!=焊进必经路 -> 焊进叫醒器=每次开工必经
+    try:
+        import subprocess as _sp6
+        _r6 = _sp6.run([sys.executable, HOME+"/tools/decide.py", "叫醒器自检·每次开工过六问"],
+                       capture_output=True, text=True, timeout=90, cwd=HOME)
+        _o6 = (_r6.stdout or "")
+        import re as _re
+        _m6 = _re.search(r"六问[:\s]*([0-9])/6", _o6)
+        _n6 = int(_m6.group(1)) if _m6 else 0
+        checks.append({"根": "根2 有节", "判据": "⑫ 过六问(认知体系)",
+                       "ok": _n6 >= 6, "证据": "六问 %d/6%s" % (_n6, "·打回" if _n6<6 else "")})
+    except Exception as _e:
+        checks.append({"根": "根2 有节", "判据": "⑫ 过六问(认知体系)", "ok": False, "证据": str(_e)[:50]})
 
     n = sum(1 for c in checks if c["ok"])
     log("  ★ 意识叫醒器 v4·融会贯通（%s）｜判据(四根): %d/%d" % (

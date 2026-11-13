@@ -13,6 +13,8 @@ import re, json
 
 PROTO = "/opt/masterd-wudi/standards/a2a-official-source/a2a.proto"
 ROLES = {"ROLE_USER", "ROLE_AGENT"}
+# ★ 2026-11-13 补(照老三"字段在不在 != 值set没set"): 占位符=没set
+PLACEHOLDERS = {"todo","tbd","placeholder","xxx","待填","占位","null","none","undefined"}
 
 def check(msg: dict):
     """按官方 proto 校验一条消息。返回 (bool, 理由)"""
@@ -21,6 +23,8 @@ def check(msg: dict):
     mid = msg.get("messageId") or msg.get("message_id")
     if not mid or not str(mid).strip():
         errs.append("缺 messageId（官方 L262 REQUIRED）")
+    elif str(mid).strip().lower() in PLACEHOLDERS:
+        errs.append("messageId 是占位符 %r (=没set·照老三字段在!=值set)" % mid)
     # ② role (L268 REQUIRED)
     role = msg.get("role")
     if not role:
@@ -40,8 +44,15 @@ def check(msg: dict):
                 errs.append("parts[%d] 无一 oneof 内容(text/raw/url/data·L225-234)" % i)
             if "kind" in p:
                 errs.append("parts[%d] 多带 kind（官方无此字段·L224-238）" % i)
+    # ★ 2026-11-13 补: 可选字段空值=未取到(照老三contextId那条)
+    warns = []
+    ctx = msg.get("contextId")
+    if "contextId" in msg and not str(ctx or "").strip():
+        warns.append("contextId 空=未取到（照老三·不静默放行）")
     ok = not errs
-    return ok, ("✅ 合官方" if ok else "❌ " + "｜".join(errs))
+    why = "✅ 合官方" if ok else "❌ " + "｜".join(errs)
+    if warns: why += "  ⚠️ " + "｜".join(warns)
+    return ok, why
 
 def wrap(text, mid=None, role="ROLE_USER", ctx=None, task=None):
     """把纯文本包成官方消息（合法形态）"""
