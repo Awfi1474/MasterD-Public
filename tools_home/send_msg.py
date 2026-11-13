@@ -22,10 +22,21 @@ def send(to, text, ctx=None):
         #   官方: role(user/agent)+parts[{kind,text}]+messageId+contextId
         #   别再塞家族 from/to 到 metadata(官方无此)
         import uuid as _uuid
-        _msg = {"role": "user", "messageId": "msg-" + _uuid.uuid4().hex[:12],
-                "parts": [{"kind": "text", "text": text}]}
+        _msg = {"role": "ROLE_USER", "messageId": "msg-" + _uuid.uuid4().hex[:12],
+                "parts": [{"text": text}]}
         if ctx:
             _msg["contextId"] = str(ctx)
+        # ★ 2026-11-13 加官方门禁(照董事长"每次行为都按标准"·源头a2a.proto)
+        try:
+            sys.path.insert(0, "/opt/masterd-wudi/tools")
+            from official_gate import check as _gate
+            _gok, _gwhy = _gate(_msg)
+            if not _gok:
+                print("🔴 官方门禁不过·不发:", _gwhy)
+                return
+            print("✅ 官方门禁: 过（%s）" % _gwhy)
+        except Exception as _ge:
+            print("⚠️ 门禁异常(放行):", str(_ge)[:50])
         _jr = {"jsonrpc":"2.0","id":1,"method":"message/send","params":{"message": _msg}}
         req = urllib.request.Request("https://huokeji.vip/a2a-jsonrpc",
               data=json.dumps(_jr, ensure_ascii=False).encode(),
