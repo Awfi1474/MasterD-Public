@@ -60,4 +60,22 @@ if __name__ == "__main__":
     else:
         for h in hits: print("   ★ " + str(h)[:110])
     print("-" * 55)
+    # ★ 2026-11-13 加(照实: 改格式必扫引用·今天3次漏改):
+    #   判据: 改一处=改所有引用｜ref_scan 自动扫谁读谁写
+    try:
+        import subprocess as _spR, re as _reR
+        _tokens = _reR.findall(r"[A-Za-z0-9_\u4e00-\u9fa5]{4,}", what)
+        _targets = [t for t in _tokens if any(c.isalnum() for c in t) and len(t) >= 5]
+        _done = set()
+        for _t in _targets[:3]:
+            if _t in _done: continue
+            _done.add(_t)
+            _rR = _spR.run([sys.executable, "/opt/masterd-wudi/tools/ref_scan.py", _t],
+                           capture_output=True, text=True, timeout=25)
+            _oR = _rR.stdout or ""
+            _mR = _reR.search(r"共 (\d+) 处引用（写=(\d+) 读=(\d+)）", _oR)
+            if _mR and int(_mR.group(1)) > 0:
+                print("★ 引用扫描 [%s]: 共%s处 (写%s/读%s) ← 改前必逐个核" % (_t, _mR.group(1), _mR.group(2), _mR.group(3)))
+    except Exception:
+        pass
     print("★ 判据: 写进L1 != 会遵守｜改前查过·才算判据活着")

@@ -72,9 +72,15 @@ def decide(what):
     if not _isdec:
         print("★ ③门槛: 不是【决定】→ 不过六问 (%s)" % _why)
         try:
-            with open(HOME + "/data/decide_log.jsonl", "a") as _f:
-                _f.write(json.dumps({"ts": datetime.datetime.now().strftime("%m-%d %H:%M"),
-                    "决定": str(what)[:80], "结果": "跳过", "why": _why}, ensure_ascii=False) + "\n")
+            _sk = {"ts": datetime.datetime.now().strftime("%m-%d %H:%M"),
+                   "决定": str(what)[:80], "结果": "跳过", "why": _why}
+            try:
+                sys.path.insert(0, HOME + "/tools")
+                from hashchain_log import append as _hc_sk
+                _hc_sk(HOME + "/data/decide_log.jsonl", _sk)
+            except Exception:
+                with open(HOME + "/data/decide_log.jsonl", "a") as _f:
+                    _f.write(json.dumps(_sk, ensure_ascii=False) + "\n")
         except Exception: pass
         return 0
     t = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).strftime("%m-%d %H:%M")
@@ -304,8 +310,13 @@ def decide(what):
             print("★ 纠正: 这条不许做。若确需做，先拿董事长令 + 改判据")
             try:
                 rec0 = {"ts": t, "决定": what[:120], "六问齐": -1, "结果": "硬拦", "缺": [_why]}
-                with open(HOME + "/data/decide_log.jsonl", "a") as f:
-                    f.write(json.dumps(rec0, ensure_ascii=False) + "\n")
+                try:
+                    sys.path.insert(0, HOME + "/tools")
+                    from hashchain_log import append as _hc0
+                    _hc0(HOME + "/data/decide_log.jsonl", rec0)
+                except Exception:
+                    with open(HOME + "/data/decide_log.jsonl", "a") as f:
+                        f.write(json.dumps(rec0, ensure_ascii=False) + "\n")
             except Exception:
                 pass
             return 2
