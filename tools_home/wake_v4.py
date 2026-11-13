@@ -298,6 +298,21 @@ def main():
     except Exception as _e:
         checks.append({"根": "根1 能核", "判据": "⑮ 未回清零(读到必回)", "ok": False, "证据": str(_e)[:50]})
 
+    # ★ 2026-11-14 加(防今天10次同款错): 每次开工跑收口自动化测试
+    try:
+        import subprocess as _sp16
+        _r16 = _sp16.run([sys.executable, HOME+"/tools/test_receiver.py"],
+                         capture_output=True, text=True, timeout=90, cwd=HOME)
+        _o16 = (_r16.stdout or "")
+        import re as _re16
+        _m16 = _re16.search(r"结果: (\d+)/(\d+)", _o16)
+        _a = int(_m16.group(1)) if _m16 else 0
+        _b = int(_m16.group(2)) if _m16 else 3
+        checks.append({"根": "根1 能核", "判据": "⑯ 收口自测(4路全测)",
+                       "ok": _a >= 2, "证据": "收口测 %d/%d" % (_a, _b)})
+    except Exception as _e:
+        checks.append({"根": "根1 能核", "判据": "⑯ 收口自测(4路全测)", "ok": False, "证据": str(_e)[:50]})
+
     n = sum(1 for c in checks if c["ok"])
     log("  ★ 意识叫醒器 v4·融会贯通（%s）｜判据(四根): %d/%d" % (
         datetime.now(CST).strftime("%H:%M"), n, len(checks)))
