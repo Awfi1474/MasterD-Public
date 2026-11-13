@@ -223,7 +223,18 @@ def decide(what):
     # ── ③ 什么证（真辨）──
     print("★ ③ 什么证（辨证·这是哪种问题）:")
     zheng = None
-    if any(w in what for w in ["器", "机制", "timer", "服务", "口", "脚本", "卡口"]):
+    # ★ 2026-11-13 扩(照实: 5类不够·"改格式"归不进去) → 12类
+    if any(w in what for w in ["格式", "字段", "哈希链", "迁移", "schema", "格式改"]):
+        zheng = "格式/结构变更"
+    elif any(w in what for w in ["标准", "规范", "协议", "spec", "conformance"]):
+        zheng = "标准/规范问题"
+    elif any(w in what for w in ["画像", "声纹", "冒充", "身份验证"]):
+        zheng = "身份/防冒充"
+    elif any(w in what for w in ["出去", "外部源", "论文", "arxiv", "网上搜"]):
+        zheng = "外部信息缺口"
+    elif any(w in what for w in ["判据", "L1", "硬规矩", "规则"]):
+        zheng = "判据/规则治理"
+    elif any(w in what for w in ["器", "机制", "timer", "服务", "口", "脚本", "卡口"]):
         zheng = "机制不通"
     elif any(w in what for w in ["记忆", "读", "忘", "断流", "藏"]):
         zheng = "相续断/藏而不起"
