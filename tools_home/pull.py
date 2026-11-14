@@ -111,10 +111,18 @@ def assignee_scan():
     """照链断点(task没落我板): 主动查 assignee=老五 的任务"""
     try:
         import urllib.request as _ur, json as _j
-        _u = HUB + "/task/list?limit=200"
+        # ★ 2026-11-14 修(字据 pull.log 20:41:35 IncompleteRead 136964/289000):
+        #   task/list?limit=200 返 289KB·urlopen 直 read 会读不全 -> 降 limit + 读完循环
+        _u = HUB + "/task/list?limit=60"
         _r = _ur.Request(_u, headers={"Authorization": "Bearer " + TOK, "X-Hub-Token": TOK})
-        with _ur.urlopen(_r, timeout=15) as _x:
-            _d = _j.loads(_x.read())
+        with _ur.urlopen(_r, timeout=25) as _x:
+            _buf = b""
+            while True:
+                _chunk = _x.read(65536)
+                if not _chunk:
+                    break
+                _buf += _chunk
+            _d = _j.loads(_buf)
         _ts = _d.get("tasks") or []
         _mine = [t for t in _ts
                  if ("老五" in str(t.get("assignee", "")) or "lao5" in str(t.get("assignee", "")))
