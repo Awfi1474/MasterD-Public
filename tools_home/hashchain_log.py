@@ -9,7 +9,7 @@
 ★ 用法: hashchain_log.py append <文件> <json内容>
        hashchain_log.py verify <文件>
 """
-import json, hashlib, os, sys, datetime
+import json, hashlib, os, sys, datetime, fcntl
 
 def _norm(content):
     """★ 统一归一(2026-11-13·照实: 迁移和校验算法不一致导致全坏链)
@@ -31,11 +31,21 @@ def get_prev(path):
     return (last.get("h") if last else "GENESIS")
 
 def append(path, content):
-    prev = get_prev(path)
-    rec = {"ts": datetime.datetime.now().isoformat(timespec="seconds"),
-           "prev": prev, "c": content, "h": _line_hash(prev, content)}
-    with open(path, "a", encoding="utf-8") as f:
-        f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    # ★ 2026-11-15 加(照实: 并发写导致 row848 prev错位=断链)
+    #   判据: 读prev→写·必须原子(加锁)·否则两条同时读到同一prev
+    _lk = path + ".lock"
+    with open(_lk, "a") as _lf:
+        fcntl.flock(_lf.fileno(), fcntl.LOCK_EX)
+        try:
+            prev = get_prev(path)
+            rec = {"ts": datetime.datetime.now().isoformat(timespec="seconds"),
+                   "prev": prev, "c": content, "h": _line_hash(prev, content)}
+            with open(path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                f.flush()
+                os.fsync(f.fileno())
+        finally:
+            fcntl.flock(_lf.fileno(), fcntl.LOCK_UN)
     return rec
 
 def verify(path):
