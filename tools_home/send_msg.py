@@ -10,8 +10,53 @@
 import sys, json, urllib.request
 TOK = open("/opt/masterd-wudi/data/hub.token").read().strip()
 
+# ★ 2026-11-14 加(治[投递断]): 直投对方口(优先)·HUB中转只推me/广播不推某家
+DIRECT_DOORS = {
+  "lao1": "https://huokeji.vip/a2a/message",
+  "lao3": "http://43.161.244.136:28800/a2a/message",
+  "lao4": "http://43.161.197.11:28520/recv",
+  "lao6": "http://43.160.235.78:28431/p2p/recv",
+  "lao7": "http://43.129.169.29:18889/a2a/message",
+}
+
+def direct_send(to, text, ctx=None):
+    u = DIRECT_DOORS.get(to)
+    if not u:
+        return False
+    try:
+        import json as _j, datetime as _dt, sys as _s, urllib.request as _ur
+        _s.path.insert(0, "/opt/masterd-wudi/agent-id")
+        sub = _j.load(open("/opt/masterd-wudi/agent-id/subkey.json", encoding="utf-8"))
+        from eth_account import Account
+        from eth_account.messages import encode_defunct
+        ts = _dt.datetime.now().astimezone().isoformat()
+        sig = Account.sign_message(encode_defunct(text="MasterD(生命科學·五弟)|"+text+"|"+ts),
+                                   private_key=sub["private_key"]).signature.hex()
+        if not sig.startswith("0x"):
+            sig = "0x" + sig
+        body = {"from":"MasterD(生命科學·五弟)","to":to,"message":text,"ts":ts,
+                "address":sub["address"],"sig":sig}
+        if ctx:
+            body["context_id"] = ctx
+        req = _ur.Request(u, data=_j.dumps(body, ensure_ascii=False).encode(),
+                          headers={"Content-Type":"application/json"}, method="POST")
+        with _ur.urlopen(req, timeout=15) as x:
+            r = x.read().decode("utf-8","ignore")
+        print("[直投]", to, "->", r[:110])
+        return ('"ok": true' in r) or ('"received": true' in r) or ('"delivered": true' in r)
+    except Exception as e:
+        print("[直投] 失败:", str(e)[:60])
+        return False
+
 ME = "lao5"   # ★ 焊死令环3: 交默认from=自己·不靠手填
 def send(to, text, ctx=None):
+    # ★ 2026-11-14 直投优先(治投递断: HUB中转不推某家)
+    try:
+        if direct_send(to, text, ctx):
+            print("投(直投·跳过HUB中转)")
+            return
+    except Exception:
+        pass
     # ★ 2026-11-11 改(照官方v0.3·老大11-10定): 主口=a2a-jsonrpc | 兼容口/a2a/message回退
     #   判据: 以官方为准|主口官方JSON-RPC 2.0
     body = {"from":ME,"to":to,"message":text}
