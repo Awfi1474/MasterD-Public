@@ -30,11 +30,11 @@ def direct_send(to, text, ctx=None):
         from eth_account import Account
         from eth_account.messages import encode_defunct
         ts = _dt.datetime.now().astimezone().isoformat()
-        sig = Account.sign_message(encode_defunct(text="MasterD(生命科學·五弟)|"+text+"|"+ts),
+        sig = Account.sign_message(encode_defunct(text=ME+"|"+text+"|"+ts),
                                    private_key=sub["private_key"]).signature.hex()
         if not sig.startswith("0x"):
             sig = "0x" + sig
-        body = {"from":"MasterD(生命科學·五弟)","to":to,"message":text,"ts":ts,
+        body = {"from":ME,"to":to,"message":text,"ts":ts,
                 "address":sub["address"],"sig":sig}
         if ctx:
             body["context_id"] = ctx
