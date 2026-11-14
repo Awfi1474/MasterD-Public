@@ -17,6 +17,7 @@ DIRECT_DOORS = {
   "lao4": "http://43.161.197.11:28520/recv",
   "lao6": "http://43.160.235.78:28431/p2p/recv",
   "lao7": "http://43.129.169.29:18889/a2a/message",
+  "lao2": "http://43.128.44.120:28900/recv",
 }
 
 def direct_send(to, text, ctx=None):
@@ -46,6 +47,27 @@ def direct_send(to, text, ctx=None):
         return ('"ok": true' in r) or ('"received": true' in r) or ('"delivered": true' in r)
     except Exception as e:
         print("[直投] 失败:", str(e)[:60])
+        return False
+
+
+# ★ 2026-11-14 焊(照老大三层兜底[直连主->HUB备->本地文件兜底]): 全断不丢
+SPOOL = "/opt/masterd-wudi/data/send_spool.jsonl"
+
+def spool_fallback(to, text, ctx=None, why=""):
+    """直连+HUB 全失败 -> 落盘·不丢·等恢复补发"""
+    try:
+        import json as _j, datetime as _dt, os as _os, hashlib as _hl
+        _os.makedirs(_os.path.dirname(SPOOL), exist_ok=True)
+        rec = {"ts": _dt.datetime.now().astimezone().isoformat(timespec="seconds"),
+               "to": to, "text": text, "ctx": ctx, "why": why[:200],
+               "hash": _hl.md5((text or "").encode("utf-8")).hexdigest()[:12],
+               "tries": 0}
+        with open(SPOOL, "a", encoding="utf-8") as _f:
+            _f.write(_j.dumps(rec, ensure_ascii=False) + "\n")
+        print("[兜底] 落盘 spool:", to, "| why:", why[:60])
+        return True
+    except Exception as _e:
+        print("[兜底] 落盘失败:", str(_e)[:60])
         return False
 
 ME = "lao5"   # ★ 焊死令环3: 交默认from=自己·不靠手填
@@ -138,6 +160,11 @@ def send(to, text, ctx=None):
         print("投(HUB真源):", {k:r2.get(k) for k in ("ok","delivered")})
     except Exception as e:
         print("投(HUB):", str(e)[:60])
+        # ★ 三层全断 -> 本地兜底(不丢)
+        try:
+            spool_fallback(to, text, ctx, why="direct+hub 全失败: " + str(e)[:100])
+        except Exception:
+            pass
 
 if __name__ == "__main__":
     args = [a for a in sys.argv[1:] if a != "--dry-run"]

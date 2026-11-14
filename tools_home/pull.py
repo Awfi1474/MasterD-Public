@@ -106,5 +106,28 @@ def pull():
     except Exception as e:
         log("result失败:"+str(e)[:40])
 
+
+def assignee_scan():
+    """照链断点(task没落我板): 主动查 assignee=老五 的任务"""
+    try:
+        import urllib.request as _ur, json as _j
+        _u = HUB + "/task/list?limit=200"
+        _r = _ur.Request(_u, headers={"Authorization": "Bearer " + TOK, "X-Hub-Token": TOK})
+        with _ur.urlopen(_r, timeout=15) as _x:
+            _d = _j.loads(_x.read())
+        _ts = _d.get("tasks") or []
+        _mine = [t for t in _ts
+                 if ("老五" in str(t.get("assignee", "")) or "lao5" in str(t.get("assignee", "")))
+                 and t.get("state") not in ("completed", "canceled")]
+        if _mine:
+            log("assignee_scan: %d 条派给我(非completed)" % len(_mine))
+            for _t in _mine[:10]:
+                log("   -> " + str(_t.get("task_id")) + " | " + str(_t.get("state")) + " | " + str(_t.get("title", ""))[:50])
+        return _mine
+    except Exception as _e:
+        log("assignee_scan ERR: " + str(_e)[:60])
+        return []
+
 if __name__=="__main__":
     pull()
+    assignee_scan()
