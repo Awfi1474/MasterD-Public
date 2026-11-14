@@ -155,7 +155,10 @@ def c6_该止则止():
 # ═══ 根3【不断】 ═══
 def c7_命续():
     """能拉回：包能解·能读·能写（真死那天拉得回）"""
-    pkg = HOME + "/recovery/老五-recovery.tar.gz"
+    # ★ 2026-11-15 修(照实: 包移到 secrets/ 后叫醒器找不到)
+    #   判据: 敏感文件放 secrets/·但内部工具要能找到
+    _cand = [HOME + "/secrets/老五-recovery.tar.gz", HOME + "/recovery/老五-recovery.tar.gz"]
+    pkg = next((x for x in _cand if __import__("os").path.exists(x)), _cand[-1])
     if not os.path.exists(pkg):
         return {"根": "根3 不断", "判据": "⑦ 命续(能拉回)", "ok": False, "证据": "无包",
                 "别人怎么核": "解包能读能写"}
