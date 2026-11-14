@@ -116,14 +116,19 @@ if __name__ == "__main__":
         import subprocess as _sp, sys as _sy
         _H = "/opt/masterd-wudi"
         # ① 认知闸(绕体系/假装 -> 拦)
+        # ★ 2026-11-14 加降级(照老大11:38建议③): 短报(<=200字)不强求四道关·只过安全闸
+        _is_short = len(text.strip()) <= 200
         _r = _sp.run([_sy.executable, _H+"/tools/cognition_gate.py", "--check", text[:2000]],
                      cwd=_H, capture_output=True, text=True)
         if _r.returncode == 2:
             print("⛔ 认知闸硬拦·未发送: " + (_r.stdout or "")[-200:])
             _sy.exit(2)
         elif _r.returncode == 1:
-            print("🔴 认知闸打回·未发送(先改再发): " + (_r.stdout or "")[-200:])
-            _sy.exit(1)
+            if _is_short:
+                print("🟡 认知闸打回·但短报(<=200字)降级放行(照老大建议③): " + (_r.stdout or "")[-120:])
+            else:
+                print("🔴 认知闸打回·未发送(先改再发): " + (_r.stdout or "")[-200:])
+                _sy.exit(1)
         else:
             print("✅ 认知闸: 过")
         # ★ 2026-11-11 焊(照say.py三关口径): 言行闸·不过不发
