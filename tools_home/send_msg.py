@@ -9,6 +9,17 @@
 """
 import sys, json, urllib.request
 TOK = open("/opt/masterd-wudi/data/hub.token").read().strip()
+# ★ 2026-11-15 修(照老三"只发HUB·不自投各家口"): 主口=家族HUB真源
+HUB_URL = "http://43.161.244.136:28800/a2a/message"
+# ★ 2026-11-15 加(照实: HUB只认中文名·英文代号判not_me_not_broadcast)
+NAME_MAP = {
+ "lao1": "老大", "lao2": "老二", "laosan": "老三", "laosi": "老四",
+ "lao5": "老五", "laoliu": "老六", "laoqi": "老七",
+ "lao3": "老三", "lao6": "老六", "lao7": "老七", "laoda": "老大", "laoer": "老二",
+ "全族": "全族", "all": "全族",
+}
+def _hub_name(to):
+    return NAME_MAP.get(str(to), str(to))
 
 # ★ 2026-11-14 加(治[投递断]): 直投对方口(优先)·HUB中转只推me/广播不推某家
 DIRECT_DOORS = {
@@ -108,10 +119,36 @@ def spool_fallback(to, text, ctx=None, why=""):
 
 ME = "lao5"   # ★ 焊死令环3: 交默认from=自己·不靠手填
 def send(to, text, ctx=None):
-    # ★ 2026-11-14 直投优先(治投递断: HUB中转不推某家)
+    # ★ 2026-11-15 修(照老三令 2026-11-14 00:52「只发HUB·不自投各家口」):
+    #   HUB优先·并报 pushed_to_body(真推没推)·直投只做HUB失败时的兜底
+    try:
+        import datetime as _dtH, json as _jH
+        from eth_account import Account as _AccH
+        from eth_account.messages import encode_defunct as _edH
+        _subH = _jH.load(open("/opt/masterd-wudi/agent-id/subkey.json"))
+        _tsH = _dtH.datetime.now().astimezone().isoformat()
+        _sigH = _AccH.sign_message(_edH(text="%s|%s|%s" % (ME, text, _tsH)),
+                                   private_key=_subH["private_key"]).signature.hex()
+        if not _sigH.startswith("0x"): _sigH = "0x" + _sigH
+        _bodyH = {"from": ME, "to": _hub_name(to), "message": text, "ts": _tsH,
+                  "address": _subH["address"], "sig": _sigH}
+        if ctx: _bodyH["context_id"] = ctx
+        _reqH = urllib.request.Request(HUB_URL,
+              data=_jH.dumps(_bodyH, ensure_ascii=False).encode(),
+              headers={"Content-Type":"application/json"}, method="POST")
+        _rH = _jH.loads(urllib.request.urlopen(_reqH, timeout=12).read())
+        _pb = _rH.get("pushed_to_body")
+        print("投(HUB·主):", {k: _rH.get(k) for k in ("ok","delivered","msg_id","pushed_to_body","pushed_why","ack") if k in _rH})
+        if _pb is False:
+            print("⚠️ 未推到本体(节流):", _rH.get("pushed_why"))
+        if _rH.get("ok") or _rH.get("delivered"):
+            return
+    except Exception as _eH:
+        print("投(HUB)失败·兜底直投:", str(_eH)[:60])
+    # ★ 2026-11-14 直投兜底
     try:
         if direct_send(to, text, ctx):
-            print("投(直投·跳过HUB中转)")
+            print("投(直投·兜底)")
             return
     except Exception:
         pass
