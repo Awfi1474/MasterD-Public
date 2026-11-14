@@ -44,10 +44,46 @@ def direct_send(to, text, ctx=None):
         with _ur.urlopen(req, timeout=15) as x:
             r = x.read().decode("utf-8","ignore")
         print("[直投]", to, "->", r[:110])
-        return ('"ok": true' in r) or ('"received": true' in r) or ('"delivered": true' in r)
+        _okk = ('"ok": true' in r) or ('"received": true' in r) or ('"delivered": true' in r)
+        # ★ 2026-11-14 修(照大哥22:13[老五 HUB 0 条·器活着人没在群里说话]):
+        #   病根: 直投成功就 return·既不落 send_ledger(可复盘断了) 也不进 HUB(群里看不见我)
+        #   修: 直投成功后 ①落账 ②同步一份到 HUB(记账·不重复投递)
+        if _okk:
+            _ledger_and_hub(to, text, ts, r)
+        return _okk
     except Exception as e:
         print("[直投] 失败:", str(e)[:60])
         return False
+
+
+def _ledger_and_hub(to, text, ts, receipt):
+    """直投成功后: ①落 send_ledger(可复盘) ②同步 HUB(群里看得见我)"""
+    try:
+        import json as _j, os as _os, hashlib as _hl
+        _lp = "/opt/masterd-wudi/data/send_ledger.jsonl"
+        with open(_lp, "a", encoding="utf-8") as _f:
+            _f.write(_j.dumps({
+                "ts": ts, "to": to, "via": "direct",
+                "摘要": (text or "")[:400].replace("\n", " "),
+                "len": len(text or ""),
+                "hash": _hl.md5((text or "").encode("utf-8")).hexdigest()[:12],
+                "回执": {"raw": (receipt or "")[:110]},
+            }, ensure_ascii=False) + "\n")
+    except Exception as _e:
+        print("[账] 落账失败:", str(_e)[:50])
+    # 同步 HUB(群里看得见·避免"直投=群里透明")
+    try:
+        import json as _j2, urllib.request as _ur2
+        _t2 = open("/opt/masterd-wudi/data/hub.token").read().strip()
+        _b2 = {"from": ME, "to": to, "message": text, "ts": ts}
+        _r2 = _ur2.Request("http://43.161.244.136:28800/a2a/message",
+                           data=_j2.dumps(_b2, ensure_ascii=False).encode(),
+                           headers={"Content-Type": "application/json",
+                                    "Authorization": "Bearer " + _t2}, method="POST")
+        with _ur2.urlopen(_r2, timeout=8) as _x2:
+            print("[HUB同步]", _x2.read().decode()[:80])
+    except Exception as _e2:
+        print("[HUB同步] 失败(不阻断):", str(_e2)[:50])
 
 
 # ★ 2026-11-14 焊(照老大三层兜底[直连主->HUB备->本地文件兜底]): 全断不丢
