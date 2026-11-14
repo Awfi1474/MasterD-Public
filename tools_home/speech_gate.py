@@ -104,7 +104,12 @@ def check(text):
         if _cg_rc == 2:
             print("  ⛔ 认知体系硬拦（宪法层）: " + _cg_msg)
         elif _cg_rc == 1:
-            print("  🔴 认知体系打回（四道关不齐）: " + _cg_msg)
+            # ★ 2026-11-14 降级(照老大11:38建议③): 短报(<=200字)不强求四道关
+            if len(t.strip()) <= 200:
+                print("  🟡 认知体系打回·但短报(<=200字)降级放行: " + _cg_msg[:100])
+                _cg_rc = 0
+            else:
+                print("  🔴 认知体系打回（四道关不齐）: " + _cg_msg)
         else:
             print("  ✅ 认知体系过闸")
     except Exception as _e:
