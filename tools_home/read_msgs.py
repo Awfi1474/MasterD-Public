@@ -18,7 +18,7 @@ LOCAL = "/opt/masterd-wudi/data/inbox.jsonl"
 
 def from_hub(n, since):
     try:
-        req = urllib.request.Request(HUB + "/inbox?for=" + FOR + "&limit=%d" % max(n,30),
+        req = urllib.request.Request(HUB + "/inbox?for=" + FOR + "&limit=%d&mark_read=1" % max(n,30),
                                      headers={"Authorization": "Bearer " + TOK})
         d = json.loads(urllib.request.urlopen(req, timeout=10).read())
         rows = []
