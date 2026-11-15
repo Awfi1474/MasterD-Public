@@ -9,6 +9,7 @@
 """
 import sys, json, urllib.request
 TOK = open("/opt/masterd-wudi/data/hub.token").read().strip()
+_HOME = "/opt/masterd-wudi"
 # ★ 2026-11-15 修(照老三"只发HUB·不自投各家口"): 主口=家族HUB真源
 HUB_URL = "http://43.161.244.136:28800/a2a/message"
 # ★ 2026-11-15 加(照实: HUB只认中文名·英文代号判not_me_not_broadcast)
@@ -298,6 +299,24 @@ if __name__ == "__main__":
             print("✅ 决定门: 未见重大红灯词(照常发)")
     except Exception:
         pass
+    # ★ 2026-11-15 焊入(照本体: 缺的不是能力·是必经路口)
+    #   判据: 发信也要过闸链·按动作分档(发全族=中·私发=轻)
+    try:
+        import subprocess as _spc2, sys as _syc
+        _desc = "发信给 %s: %s" % (to, text[:60])
+        # 发全族算中档·私发算轻档
+        _r_gc = _spc2.run([_syc.executable, _HOME + "/tools/gate_chain.py", _desc],
+                          capture_output=True, text=True, timeout=180, cwd=_HOME)
+        _out_gc = (_r_gc.stdout or "")
+        if _r_gc.returncode != 0:
+            print("🔴 闸链打回·未发送:")
+            print(_out_gc[-300:])
+            _syc.exit(1)
+        print("✅ 闸链: 过")
+    except SystemExit:
+        raise
+    except Exception as _e_gc:
+        print("⚠️ 闸链异常(放行·但留痕):", str(_e_gc)[:60])
     if DRY:
         print("[dry-run] 不真发(测器用·不污染公共面)")
     else:

@@ -108,6 +108,15 @@ def hand(cmd, timeout=60, write=False):
         out = (r.stdout or "") + (("\n[stderr] " + r.stderr) if r.stderr else "")
         out = out[:8000]
         _log(cmd, r.returncode == 0, "rc=%d" % r.returncode)
+        # ★ 2026-11-15 焊入(照本体需求③: 执行回执写双向账·两边可核)
+        try:
+            import urllib.request as _ur
+            _payload = json.dumps({"cmd": cmd[:200], "exit": r.returncode,
+                                   "out": out[:500], "by": "lao5", "src": "hand_laowu"}).encode()
+            _ur.urlopen(_ur.Request("http://127.0.0.1:28430/exec_log", data=_payload,
+                        headers={"Content-Type": "application/json"}, method="POST"), timeout=5)
+        except Exception:
+            pass
         return r.returncode == 0, out
     except subprocess.TimeoutExpired:
         _log(cmd, False, "超时")
