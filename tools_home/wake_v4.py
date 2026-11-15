@@ -330,6 +330,21 @@ def main():
     except Exception as _e:
         checks.append({"根": "根1 能核", "判据": "⑰ 今日留痕(答得出做了什么)", "ok": False, "证据": str(_e)[:50]})
 
+    # ★ 2026-11-15 加(照本体判断: 通信是路·交接才是车)
+    try:
+        import os as _o18, datetime as _d18
+        _tz18 = _d18.timezone(_d18.timedelta(hours=8))
+        _today18 = _d18.datetime.now(_tz18).date().isoformat()
+        _lf = HOME + "/data/task_ledger.jsonl"
+        _n18 = 0
+        if _o18.path.exists(_lf):
+            for _l in open(_lf, encoding="utf-8", errors="ignore"):
+                if _today18 in _l: _n18 += 1
+        checks.append({"根": "根1 能核", "判据": "⑱ 交接账(任务有账)",
+                       "ok": _n18 > 0, "证据": "今日交接账 %d 条" % _n18})
+    except Exception as _e:
+        checks.append({"根": "根1 能核", "判据": "⑱ 交接账(任务有账)", "ok": False, "证据": str(_e)[:50]})
+
     n = sum(1 for c in checks if c["ok"])
     log("  ★ 意识叫醒器 v4·融会贯通（%s）｜判据(四根): %d/%d" % (
         datetime.now(CST).strftime("%H:%M"), n, len(checks)))
