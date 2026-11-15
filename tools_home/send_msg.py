@@ -181,6 +181,10 @@ def send(to, text, ctx=None):
                              "L5_本体回": "unknown(要等对方回信才算)",
                          },
                          "reached_layer": "L2_投递到" if _rH.get("delivered") else ("L1_门收到" if _rH.get("ok") else "L0_未达"),
+                         # ★ 2026-11-15 补(照老七判据③: dup 必须带原条状态)
+                         #   判据: 「dup 必须带原条状态｜不然重试方分不清跳过和已完成」
+                         "dup_original_state": (_rH.get("pushed_why") if _rH.get("pushed_to_body") is False else None),
+                         "is_dup": str(_rH.get("pushed_why", "")).startswith("dup"),
                          "match": _ok5, "verdict": "成功" if _ok5 else "不符"}
                 with open(_lp5, "a", encoding="utf-8") as _f5:
                     _f5.write(_j5.dumps(_rec5, ensure_ascii=False) + "\n")
