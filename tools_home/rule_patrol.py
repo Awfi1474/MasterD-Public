@@ -130,9 +130,120 @@ def check_cost():
     except Exception as e:
         return [{"chk": "cost", "ok": False, "detail": "err " + str(e)[:50]}]
 
+def check_guard():
+    """调模型但没过闸的（照实: 防止偷偷烧钱）"""
+    out = []
+    try:
+        import importlib.util as _iu
+        sp = _iu.spec_from_file_location("ac", HOME + "/tools/anticheat.py")
+        m = _iu.module_from_spec(sp)
+        sp.loader.exec_module(m)
+        r = m.report(save=False)
+        risk = r["结果"]["未过闸"]
+        out.append({"chk": "guard:llm", "ok": risk == 0,
+                    "detail": "调模型 %d 个·未过闸 %d" % (r["结果"]["总调模型文件"], risk)})
+    except Exception as e:
+        out.append({"chk": "guard:llm", "ok": False, "detail": "err " + str(e)[:50]})
+    return out
+
+
+def check_fail_ledger():
+    """失败必须入账（照实: 账里只有成功是宣传）"""
+    out = []
+    try:
+        import importlib.util as _iu2
+        sp = _iu2.spec_from_file_location("fl", HOME + "/tools/fail_ledger.py")
+        m = _iu2.module_from_spec(sp)
+        sp.loader.exec_module(m)
+        st = m.stats()
+        tot = sum(st.values()) if st else 0
+        out.append({"chk": "fail:ledger", "ok": tot < 200,
+                    "detail": "今日失败落账 %d 条" % tot})
+    except Exception as e:
+        out.append({"chk": "fail:ledger", "ok": False, "detail": "err " + str(e)[:50]})
+    return out
+
+
+def check_orphan():
+    """卡死的只读孤儿进程（照实: 一个 grep 卡2天12小时吃92%CPU）"""
+    out = []
+    try:
+        ok, o = sh("ps -eo pid,ppid,etime,pcpu,comm --sort=-pcpu 2>/dev/null | head -12")
+        stuck = []
+        SAFE = ("grep", "find", "sort", "du", "awk", "head", "tail", "cat", "xargs", "sed")
+        for line in (o or "").splitlines()[1:]:
+            parts = line.split()
+            if len(parts) < 5:
+                continue
+            pid, ppid, etime, pcpu, comm = parts[0], parts[1], parts[2], parts[3], parts[4]
+            try:
+                cpu = float(pcpu)
+            except Exception:
+                continue
+            if "-" in etime and cpu > 40 and ppid == "1" and comm in SAFE:
+                stuck.append("%s(%s,%s%%)" % (comm, pid, pcpu))
+        out.append({"chk": "orphan:cpu", "ok": len(stuck) == 0,
+                    "detail": ("卡死 %d 个: %s" % (len(stuck), ",".join(stuck[:3]))) if stuck else "无卡死孤儿"})
+    except Exception as e:
+        out.append({"chk": "orphan:cpu", "ok": False, "detail": "err " + str(e)[:50]})
+    return out
+
+
+def check_cron():
+    """cron 健康（照实: 引用了不存在的脚本 -> 每轮白跑静默失败）"""
+    out = []
+    try:
+        import importlib.util as _iu3
+        sp = _iu3.spec_from_file_location("ch3", HOME + "/tools/cron_health.py")
+        m = _iu3.module_from_spec(sp)
+        sp.loader.exec_module(m)
+        r = m.check(dry=True)
+        res = r["结果"]
+        out.append({"chk": "cron:health", "ok": res["缺失数"] == 0 and res["错误日志数"] == 0,
+                    "detail": "缺失%d·调模型%d·日志错%d" % (res["缺失数"], len(res["会调模型的"]), res["错误日志数"])})
+    except Exception as e:
+        out.append({"chk": "cron:health", "ok": False, "detail": "err " + str(e)[:50]})
+    return out
+
+
+def check_wake_switch():
+    """门偷偷叫醒本体（照实: 本体停着还在花钱的真因）
+       判据: 「说冻结不算|看账有没有涨才算」"""
+    out = []
+    try:
+        import os as _o
+        import json as _j
+        import datetime as _dt
+        sw = HOME + "/state/body_wake_disabled.json"
+        exists = _o.path.exists(sw)
+        recent = 0
+        up = HOME + "/data/llm_usage.jsonl"
+        if _o.path.exists(up):
+            now = _dt.datetime.now()
+            for l in open(up, encoding="utf-8", errors="ignore").readlines()[-200:]:
+                if not l.strip():
+                    continue
+                try:
+                    d = _j.loads(l)
+                    t = _dt.datetime.strptime(str(d.get("ts"))[:19], "%Y-%m-%dT%H:%M:%S")
+                    if (now - t).total_seconds() < 600:
+                        recent += 1
+                except Exception:
+                    continue
+        ok = (not exists) or (recent == 0)
+        detail = "开关%s|近10分钟调用%d" % ("在" if exists else "不在", recent)
+        if exists and recent > 0:
+            detail = detail + " 🔴 开关在但还在花钱"
+        out.append({"chk": "wake:switch", "ok": ok, "detail": detail})
+    except Exception as e:
+        out.append({"chk": "wake:switch", "ok": False, "detail": "err " + str(e)[:50]})
+    return out
+
+
 def patrol():
     res = []
-    for fn in (check_services, check_ports, check_ledger, check_unread, check_disk, check_cost):
+    for fn in (check_services, check_ports, check_ledger, check_unread, check_disk, check_cost,
+               check_guard, check_fail_ledger, check_orphan, check_cron, check_wake_switch):
         try:
             res.extend(fn())
         except Exception as e:
