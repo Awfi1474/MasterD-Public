@@ -73,7 +73,7 @@ def main():
         _ttl = _organ_ttl(o)   # 分钟
         if age > _ttl: sick.append((o, int(age), _ttl))
     if sick:
-        for o, a in sorted(sick, key=lambda x: -x[1])[:12]:
+        for o, a, _t in sorted(sick, key=lambda x: -x[1])[:12]:
             print("     🟡 %-18s 已 %d 分钟没产出" % (o, a))
     else:
         print("     ✅ 全部器官 1 小时内都有产出")
@@ -84,7 +84,7 @@ def main():
     out = {"ts": datetime.datetime.now().isoformat(), "器官数": len(organs),
            "有专用doctor": has, "用兜底doctor": len(no),
            "没doctor": [],   # ★ 兜底后·"没 doctor" = 0
-           "sick": [{"organ": o, "quiet_min": a} for o, a in sick],
+           "sick": [{"organ": o, "quiet_min": a, "ttl_min": t} for o, a, t in sick],
            "判据": ["D1 每个器官都要有doctor(专用或兜底)", "D2 doctor要报'谁病了'", "D3 每个器官节律不同·不能一把尺子"]}
     print("\n  ★ 兜底后: ★ 每个器官都有 doctor（%d 专用 + %d 兜底 = %d 全覆盖）" % (has, len(no), has+len(no)))
     os.makedirs(HOME + "/data", exist_ok=True)

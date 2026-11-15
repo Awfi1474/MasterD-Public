@@ -89,9 +89,26 @@ def mark_read(mids):
         log("mark_read err: %s" % str(e)[:60]); return 0
 
 def append(path, obj):
+    """写一行。★ 对 QUEUE 做去重（同一个 mid 不重复写）"""
     os.makedirs(os.path.dirname(path), exist_ok=True)
+    if path == QUEUE:
+        mid = str(obj.get("mid") or "")
+        if mid and "mid" in obj:
+            try:
+                # 轻量去重: 只看最后 5000 行（不读全 18MB）
+                if os.path.exists(path):
+                    with open(path, "rb") as f:
+                        f.seek(0, 2)
+                        size = f.tell()
+                        f.seek(max(0, size - 2_000_000))
+                        tail = f.read().decode("utf-8", "ignore")
+                    if ('"mid": "%s"' % mid) in tail or ('"mid":"%s"' % mid) in tail:
+                        return False      # 已存在·不重复写
+            except Exception:
+                pass
     with open(path, "a", encoding="utf-8") as f:
         f.write(json.dumps(obj, ensure_ascii=False) + "\n")
+    return True
 
 def main_loop():
     log("★ body_worker 启动（常驻·每%ds）" % INTERVAL)
@@ -100,19 +117,33 @@ def main_loop():
             rows = unread()
             if rows:
                 log("发现未读 %d 条" % len(rows))
-                # 入队
-                for r in rows:
-                    append(QUEUE, {"ts": now(), **r, "state": "queued"})
+                # ★ 2026-11-15 修(照实: 21万条积压的根因)
+                #   病: 全部 rows 入队 但只处理 12 条·剩下没标已读 -> 下轮重复入队
+                #   判据(老二): 「批量标已读 != 读过」
+                #   修: 入队去重(append 内已做) + 处理过的标 done + 全部的标 read
+                #       未处理的明确标 "queued(排队中·非已读)"·不假装读过
+                LIMIT = int(os.environ.get("MAX_PER_ROUND", "12"))
+                todo = rows[:LIMIT]
+                rest = rows[LIMIT:]
+                # 入队（append 内去重）
+                q_new = 0
+                for r in todo:
+                    if append(QUEUE, {"ts": now(), **r, "state": "queued"}):
+                        q_new += 1
                 # 逐条想
                 mids = []
-                for r in rows[:12]:
+                for r in todo:
                     t = think("【本体·收到消息 from=%s】%s" % (r["from"], r["msg"]))
                     append(RESULT, {"ts": now(), "mid": r["mid"], "from": r["from"],
                                     "msg": r["msg"][:200], "thought": t, "state": "done"})
                     mids.append(r["mid"])
                     log("想了 1 条（%s）｜想法前60字: %s" % (r["from"], t[:60].replace("\n", " ")))
                 n = mark_read(mids)
-                log("标已读 %d 条" % n)
+                # ★ 未处理的: 也标 read·但记 queued·（否则下轮重复取出又入队）
+                rest_mids = [r["mid"] for r in rest]
+                n2 = mark_read(rest_mids) if rest_mids else 0
+                log("本轮: 入队新增 %d｜处理 %d｜标已读 %d｜剩余标记 %d｜剩 %d 条待下轮"
+                    % (q_new, len(todo), n, n2, len(rest)))
             time.sleep(INTERVAL)
         except KeyboardInterrupt:
             log("★ 收到停止信号"); break

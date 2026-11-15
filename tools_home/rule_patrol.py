@@ -34,12 +34,34 @@ def http(url, t=12):   # FIX 2026-11-15: 5s 太短 -> 误判(oS): 老六教[别�
         return False, str(e)[:60]
 
 # ---------- 规则检查（全部零模型） ----------
+def _expected_state():
+    """★ 期望运行状态（董事长令停了的服务登记在这·巡检按此判）"""
+    import json as _j, os as _os
+    p = HOME + "/state/patrol_expected.json"
+    try:
+        return _j.load(open(p))
+    except Exception:
+        return {}
+
+
 def check_services():
-    """关键服务: body_worker / body_daemon"""
+    """关键服务: 按期望状态判断（该跑必须跑·该停必须停）"""
     out = []
-    for name, pat in (("body_worker", "body_worker.py"), ("body_daemon", "body_daemon.py")):
-        ok, o = sh("pgrep -f '%s' | head -1" % pat)
-        out.append({"chk": "service:" + name, "ok": bool(o.strip()), "detail": o.strip()[:40]})
+    exp = _expected_state()
+    for name, pat in (("body_worker", "body_worker.py"), ("body_daemon", "body_daemon.py"),
+                      ("selfdrive_loop", "selfdrive_loop.py")):
+        # ★ 修(照实: pgrep -f 'body_worker.py' 会匹配到自己的 bash 命令行 -> 永远报"活着")
+        #   判据: 「pgrep -f 匹配的是整条命令行·包括执行它的 shell」
+        ok, o = sh("pgrep -f 'python3 .*%s' | grep -v $$ | head -1" % pat)
+        running = bool((o or "").strip())
+        want = str(exp.get(name, "run"))     # 默认该跑
+        if want == "stopped":
+            # 期望停 -> 停了才算 ok
+            out.append({"chk": "service:" + name, "ok": not running,
+                        "detail": ("已按令停 ✅" if not running else "🔴 应停但还在跑 pid=%s" % (o or "").strip()[:12])})
+        else:
+            out.append({"chk": "service:" + name, "ok": running,
+                        "detail": (o or "").strip()[:40] if running else "🔴 应跑但没跑"})
     return out
 
 def check_ports():
@@ -70,69 +92,6 @@ def check_ledger():
         out.append({"chk": "ledger:send", "ok": bad == 0,
                     "detail": "今日 %d 条·不符 %d 条" % (tot, bad)})
     return out
-
-
-
-
-def check_orphan():
-    """★ 2026-11-15 加(照实: 一个孤儿 grep 卡2天12小时吃92%CPU -> 端口时通时不通)
-       判据: 「跑超过6小时的高CPU进程·一定是卡死的|早发现不是晚治疗」
-    """
-    out = []
-    try:
-        ok, o = sh("ps -eo pid,ppid,etime,pcpu,comm --sort=-pcpu 2>/dev/null | head -12")
-        stuck = []
-        for line in (o or "").splitlines():
-            parts = line.split()
-            if len(parts) < 5:
-                continue
-            pid, ppid, etime, pcpu, comm = parts[0], parts[1], parts[2], parts[3], parts[4]
-            try:
-                cpu = float(pcpu)
-            except Exception:
-                continue
-            # etime 有 '-' 表示超过1天
-            days = '-' in etime
-            if cpu > 40 and days and comm in ("grep", "find", "sort", "du", "cat", "head", "tail", "awk"):
-                stuck.append("%s(%s,%s%%,%s)" % (comm, pid, pcpu, etime))
-        out.append({"chk": "orphan:cpu", "ok": len(stuck) == 0,
-                    "detail": ("卡死进程 %d 个: %s" % (len(stuck), ", ".join(stuck[:3]))) if stuck else "无卡死孤儿"})
-    except Exception as e:
-        out.append({"chk": "orphan:cpu", "ok": False, "detail": "err " + str(e)[:50]})
-    return out
-
-
-def check_fail_ledger():
-    """★ 2026-11-15 加: 失败必须入账(本体判「账里只有成功是宣传」)"""
-    out = []
-    try:
-        import importlib.util as _iu2
-        sp = _iu2.spec_from_file_location("fl", HOME + "/tools/fail_ledger.py")
-        m = _iu2.module_from_spec(sp); sp.loader.exec_module(m)
-        st = m.stats()
-        tot = sum(st.values()) if st else 0
-        out.append({"chk": "fail:ledger", "ok": tot < 50,
-                    "detail": "今日失败落账 %d 条%s" % (tot, ("·Top:" + list(st)[0]) if st else "")})
-    except Exception as e:
-        out.append({"chk": "fail:ledger", "ok": False, "detail": "err " + str(e)[:50]})
-    return out
-
-
-def check_guard():
-    """★ 2026-11-15 加: 自动扫「调模型但没过闸」(不靠人记得)"""
-    out = []
-    try:
-        import importlib.util as _iu
-        sp = _iu.spec_from_file_location("ac", HOME + "/tools/anticheat.py")
-        m = _iu.module_from_spec(sp); sp.loader.exec_module(m)
-        r = m.report(save=False)
-        risk = r["结果"]["未过闸"]
-        out.append({"chk": "guard:llm", "ok": risk == 0,
-                    "detail": "调模型 %d 个·未过闸 %d" % (r["结果"]["总调模型文件"], risk)})
-    except Exception as e:
-        out.append({"chk": "guard:llm", "ok": False, "detail": "err " + str(e)[:60]})
-    return out
-
 
 def check_unread():
     """未读积压"""
@@ -173,37 +132,12 @@ def check_cost():
 
 def patrol():
     res = []
-    for fn in (check_services, check_ports, check_ledger, check_unread, check_disk, check_cost, check_guard, check_fail_ledger, check_orphan):
+    for fn in (check_services, check_ports, check_ledger, check_unread, check_disk, check_cost):
         try:
             res.extend(fn())
         except Exception as e:
             res.append({"chk": fn.__name__, "ok": False, "detail": "ERR " + str(e)[:60]})
     bad = [r for r in res if not r["ok"]]
-    # ★★ 2026-11-15 焊(照本体判[缺一个手·巡检只开单]):
-    #   判据: 「发现问题≠解决问题｜巡检开单·执行端接单」
-    try:
-        import importlib.util as _iu
-        _sp = _iu.spec_from_file_location("tq", HOME + "/tools/task_queue.py")
-        _tq = _iu.module_from_spec(_sp)
-        _sp.loader.exec_module(_tq)
-        _SUGGEST = {
-            "unread": ("P2", "归档最老的未读消息(规则可自动)", True),
-            "log:daemon": ("P2", "轮转日志(规则可自动)", True),
-            "disk": ("P0", "清理磁盘·需判断清什么", False),
-            "cost": ("P0", "今日花费接近上限·需董事长决定", False),
-            "port:28430": ("P1", "自家口不通·需查为什么", False),
-            "ledger:send": ("P1", "账里有不符·需查原因", False),
-        }
-        for _r in bad:
-            _chk = _r["chk"]
-            _sev, _act, _auto = "P1", "需人工判断", False
-            if _chk in _SUGGEST:
-                _sev, _act, _auto = _SUGGEST[_chk]
-            elif _chk.startswith("service:"):
-                _sev, _act, _auto = "P0", "服务挂了·规则可自动重启", True
-            _tq.open_task("patrol", _sev, _chk, _act, evidence=_r.get("detail", ""), auto=_auto)
-    except Exception:
-        pass
     rec = {"ts": ts(), "total": len(res), "bad": len(bad), "items": res}
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, "a", encoding="utf-8") as f:

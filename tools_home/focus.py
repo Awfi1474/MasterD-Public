@@ -34,15 +34,41 @@ def main():
     now = datetime.datetime.now().strftime("%F %T")
     # ★ ① 候选（从最近会场取）
     cands = []
+    # ★ 2026-11-15 修(照实: 会场 134.175.45.16:28100 现在 000/15s 超时·每轮刷日志)
+    #   判据: 「失败要留痕·但不许同一错误无限刷」
+    _hstate_p = "/opt/masterd-wudi/state/focus_hub_state.json"
+    _hs = {}
+    try:
+        import json as _j0
+        _hs = _j0.load(open(_hstate_p))
+    except Exception:
+        _hs = {"fail": 0, "last_ok": None}
     try:
         import urllib.request
-        raw = urllib.request.urlopen("http://134.175.45.16:28100/questions?limit=20", timeout=15).read().decode("utf-8","ignore")
+        raw = urllib.request.urlopen("http://134.175.45.16:28100/questions?limit=20", timeout=6).read().decode("utf-8","ignore")
+        _hs["fail"] = 0
+        _hs["last_ok"] = datetime.datetime.now().isoformat(timespec="seconds")
+        try:
+            import json as _j1
+            _j1.dump(_hs, open(_hstate_p, "w"))
+        except Exception:
+            pass
         import re
         for m in re.finditer(r'"q": "((?:[^"\\]|\\.)*)", "state": "[^"]*", "raised_by": "([^"]*)", "kind": "[^"]*", "ts": "([^"]*)"', raw, re.S):
             q = m.group(1).replace("\\n","\n").replace('\\"','"')
             cands.append({"title": q[:120], "from": m.group(2), "ts": m.group(3)})
     except Exception as e:
-        print("  取候选失败:", str(e)[:50])
+        # ★ 只在第 1 次和第 10/50/100 次记录·其余静默（防刷屏）
+        _hs["fail"] = int(_hs.get("fail", 0)) + 1
+        try:
+            import json as _j2
+            _j2.dump(_hs, open(_hstate_p, "w"))
+        except Exception:
+            pass
+        _f = _hs["fail"]
+        if _f in (1, 10, 50, 100, 500) or _f % 1000 == 0:
+            print("  取候选失败(连续 %d 次·上次成功 %s): %s"
+                  % (_f, _hs.get("last_ok") or "未知", str(e)[:50]))
     # ★ ② 评分
     for c in cands: c["score"] = score(c)
     cands.sort(key=lambda x: -x["score"])
