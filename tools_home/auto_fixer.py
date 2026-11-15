@@ -132,10 +132,46 @@ def fix_lock(t):
                 pass
     return (n > 0), "清残留锁 %d 个" % n
 
+def fix_orphan(t):
+    """清理卡死的只读孤儿进程（PPID=1 + 跑超1天 + CPU>40%）"""
+    import subprocess
+    SAFE = ("grep", "find", "sort", "du", "awk", "head", "tail", "cat", "xargs", "sed")
+    killed = []
+    try:
+        r = subprocess.run("ps -eo pid,ppid,etime,pcpu,comm --sort=-pcpu",
+                           shell=True, capture_output=True, text=True, timeout=10)
+        for line in (r.stdout or "").splitlines()[1:]:
+            p = line.split()
+            if len(p) < 5:
+                continue
+            pid, ppid, etime, pcpu, comm = p[0], p[1], p[2], p[3], p[4]
+            try:
+                cpu = float(pcpu)
+            except Exception:
+                continue
+            if "-" not in etime or cpu <= 40:
+                continue
+            if comm not in SAFE:
+                continue
+            if ppid != "1":
+                continue
+            try:
+                subprocess.run(["kill", "-TERM", pid], timeout=5)
+                killed.append("%s(%s,%s%%)" % (comm, pid, pcpu))
+            except Exception:
+                pass
+    except Exception as e:
+        return False, "err " + str(e)[:60]
+    if killed:
+        return True, "清了孤儿: " + ", ".join(killed[:4])
+    return False, "无孤儿"
+
+
 AUTO_MAP = {
     "unread": fix_unread,
     "log:daemon": fix_log,
     "lock": fix_lock,
+    "orphan:cpu": fix_orphan,
 }
 
 def _observe(chk):

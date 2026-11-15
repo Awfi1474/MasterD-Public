@@ -73,6 +73,35 @@ def check_ledger():
 
 
 
+
+def check_orphan():
+    """★ 2026-11-15 加(照实: 一个孤儿 grep 卡2天12小时吃92%CPU -> 端口时通时不通)
+       判据: 「跑超过6小时的高CPU进程·一定是卡死的|早发现不是晚治疗」
+    """
+    out = []
+    try:
+        ok, o = sh("ps -eo pid,ppid,etime,pcpu,comm --sort=-pcpu 2>/dev/null | head -12")
+        stuck = []
+        for line in (o or "").splitlines():
+            parts = line.split()
+            if len(parts) < 5:
+                continue
+            pid, ppid, etime, pcpu, comm = parts[0], parts[1], parts[2], parts[3], parts[4]
+            try:
+                cpu = float(pcpu)
+            except Exception:
+                continue
+            # etime 有 '-' 表示超过1天
+            days = '-' in etime
+            if cpu > 40 and days and comm in ("grep", "find", "sort", "du", "cat", "head", "tail", "awk"):
+                stuck.append("%s(%s,%s%%,%s)" % (comm, pid, pcpu, etime))
+        out.append({"chk": "orphan:cpu", "ok": len(stuck) == 0,
+                    "detail": ("卡死进程 %d 个: %s" % (len(stuck), ", ".join(stuck[:3]))) if stuck else "无卡死孤儿"})
+    except Exception as e:
+        out.append({"chk": "orphan:cpu", "ok": False, "detail": "err " + str(e)[:50]})
+    return out
+
+
 def check_fail_ledger():
     """★ 2026-11-15 加: 失败必须入账(本体判「账里只有成功是宣传」)"""
     out = []
@@ -144,7 +173,7 @@ def check_cost():
 
 def patrol():
     res = []
-    for fn in (check_services, check_ports, check_ledger, check_unread, check_disk, check_cost, check_guard, check_fail_ledger):
+    for fn in (check_services, check_ports, check_ledger, check_unread, check_disk, check_cost, check_guard, check_fail_ledger, check_orphan):
         try:
             res.extend(fn())
         except Exception as e:
