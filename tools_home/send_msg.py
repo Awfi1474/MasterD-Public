@@ -183,8 +183,8 @@ def send(to, text, ctx=None):
         if direct_send(to, text, ctx):
             print("投(直投·兜底)")
             return
-    except Exception:
-        pass
+    except Exception as _e186:
+        print('[闸·失败] 直投兜底异常·结果未确认:', str(_e186)[:80])
     # ★ 2026-11-11 改(照官方v0.3·老大11-10定): 主口=a2a-jsonrpc | 兼容口/a2a/message回退
     #   判据: 以官方为准|主口官方JSON-RPC 2.0
     body = {"from":ME,"to":to,"message":text}
@@ -304,8 +304,8 @@ def send(to, text, ctx=None):
         # ★ 三层全断 -> 本地兜底(不丢)
         try:
             spool_fallback(to, text, ctx, why="direct+hub 全失败: " + str(e)[:100])
-        except Exception:
-            pass
+        except Exception as _e307:
+            print('[闸·失败] spool兜底失败·消息可能丢失:', str(_e307)[:80])
 
 if __name__ == "__main__":
     args = [a for a in sys.argv[1:] if a != "--dry-run"]
@@ -364,8 +364,8 @@ if __name__ == "__main__":
             print("🔴 决定门警示: 文本含重大词 %s -> 先过 wudi_gate(别自答自过)" % _red)
         else:
             print("✅ 决定门: 未见重大红灯词(照常发)")
-    except Exception:
-        pass
+    except Exception as _e367:
+        print('[闸·失败] 决定门检查失败(放行但记录):', str(_e367)[:80])
     # ★ 2026-11-15 焊入(照本体: 缺的不是能力·是必经路口)
     #   判据: 发信也要过闸链·按动作分档(发全族=中·私发=轻)
     try:

@@ -36,6 +36,7 @@ DANGER = [
     r":\(\)\s*\{",
     "mk" + "fs", "d" + "d" + r"\s+if=", r">\s*/dev/sd", "shut" + "down", "re" + "boot", "ha" + "lt",
     r"chmod\s+-R\s+777\s+/", r"mv\s+/opt/masterd-wudi/memory/memory\.db",
+    r"(>\s*[^|]*memory\.db)|(rm\s+[^|]*memory\.db)|(sqlite3\s+[^|]*memory\.db\s+(UPDATE|DELETE|DROP|update|delete|drop))",
     "ident" + "ity", "private.?key", "vault", "ssh_key", "片1", "片2",
 ]
 # ★ 2026-11-08 修(本体读身份档被误拦): 纯"读"命令(cat/head/tail/grep/ls/wc) · 不碰这些词

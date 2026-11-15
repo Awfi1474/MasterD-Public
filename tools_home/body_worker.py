@@ -39,6 +39,11 @@ def unread():
         # ★ 2026-11-15 提速: 跳过纯机器回执(不浪费模型调用)
         if any(k in t for k in ("自動回執", "自动回执", "門收到並記下", "[SELFCOPY", "探活 ")): continue
         mid = str(b.get("messageId") or b.get("msg_id") or "")
+        # ★ 2026-11-15 修(照实: 大量消息无 messageId/msg_id -> mid 空 -> mark_read 全标不上)
+        #   判据: 没有 id 也要有唯一键·用 from+ts+内容头哈希
+        if not mid:
+            import hashlib as _h
+            mid = "k-" + _h.md5(("%s|%s|%s" % (b.get("from") or "", b.get("ts") or "", t[:80])).encode("utf-8")).hexdigest()[:16]
         out.append({"mid": mid, "from": str(b.get("from") or "")[:20], "msg": t[:2000], "ts": str(b.get("ts") or "")})
     return out
 
@@ -65,6 +70,10 @@ def mark_read(mids):
             except Exception: out.append(l); continue
             b = d.get("c") if isinstance(d.get("c"), dict) else d
             mid = str(b.get("messageId") or b.get("msg_id") or "")
+            if not mid:
+                import hashlib as _h2
+                _t2 = str(b.get("message") or "")
+                mid = "k-" + _h2.md5(("%s|%s|%s" % (b.get("from") or "", b.get("ts") or "", _t2[:80])).encode("utf-8")).hexdigest()[:16]
             if mid and mid in s and b.get("read") is not True:
                 b["read"] = True
                 b["read_by"] = "body_worker"
