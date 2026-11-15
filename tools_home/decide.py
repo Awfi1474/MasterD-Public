@@ -351,6 +351,28 @@ def decide(what):
             print("★ 判据在管我: " + _h[0]["title"][:36])
     except Exception:
         pass
+    # ★ 2026-11-15 接(照本体: 门票要自动发·不然门禁永远拦)
+    #   判据: 六问过=发票(5分钟)·不过=不发
+    if n_ok >= 6:
+        try:
+            import sqlite3 as _s6b, time as _t6b
+            _c6 = _s6b.connect(HOME + "/memory/memory.db")
+            _c6.execute("INSERT INTO decide_ticket (ts, decision) VALUES (?,?)",
+                        (_t6b.time(), str(what)[:80]))
+            _c6.commit()
+            print("★ 已发决定票(数据库层·5分钟)")
+            # ★ 2026-11-15 补(照实: 两套凭证不统一→应用层拦死的):
+            #   判据: 一道闸要认同一个凭证·别一个查表一个查文件
+            try:
+                import sys as _s6c
+                _s6c.path.insert(0, HOME + "/tools")
+                from require_decide import issue as _issue
+                _issue(str(what)[:80])
+            except Exception as _e6c:
+                print("⚠️ 应用层发票失败:", str(_e6c)[:60])
+        except Exception as _e6:
+            print("⚠️ 发票失败:", str(_e6)[:60])
+
     return 0 if n_ok >= 6 else 1
 
 
