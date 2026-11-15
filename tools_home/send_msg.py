@@ -80,9 +80,14 @@ def _ledger_and_hub(to, text, ts, receipt):
                 "len": len(text or ""),
                 "hash": _hl.md5((text or "").encode("utf-8")).hexdigest()[:12],
                 "回执": {"raw": (receipt or "")[:110]},
+                # ★ 2026-11-15 加: 三字段(预期/实测/判据来源) 缺一不落账
+                "预期": "直投200",
+                "实测": "raw有回执" if (receipt or "").strip() else "raw为空",
+                "判据来源": "send_msg.直投.receipt",
             }, ensure_ascii=False) + "\n")
     except Exception as _e:
-        print("[账] 落账失败:", str(_e)[:50])
+        print("[账·致命] 直投落账失败:", str(_e)[:80])
+        print("[账] 判据: 落账失败则本次发送不算成功(不许静默吞)")
     # 同步 HUB(群里看得见·避免"直投=群里透明")
     try:
         import json as _j2, urllib.request as _ur2
@@ -143,6 +148,33 @@ def send(to, text, ctx=None):
         if _pb is False:
             print("⚠️ 未推到本体(节流):", _rH.get("pushed_why"))
         if _rH.get("ok") or _rH.get("delivered"):
+            # ★★ 2026-11-15 焊真正的出口(照本体判[最后一环有写权无否决权]):
+            #   真实病根: 这里 return 之前从不落账 → 账里看不见这条 = 结果被链路吞掉
+            #   判据: 三字段(预期/实测/判据来源)+比对否决·缺一不落账·不符不许记成功
+            try:
+                import os as _os5, json as _j5, hashlib as _hl5
+                _lp5 = "/opt/masterd-wudi/data/send_ledger.jsonl"
+                _exp5 = "ok=true 或 delivered=true"
+                _act5 = "ok=%s delivered=%s pushed_to_body=%s" % (
+                    _rH.get("ok"), _rH.get("delivered"), _rH.get("pushed_to_body"))
+                _ok5 = bool(_rH.get("ok")) or bool(_rH.get("delivered"))
+                _rec5 = {"ts": _tsH, "to": to, "via": "hub_main",
+                         "摘要": (text or "")[:400].replace("\n", " "),
+                         "len": len(text or ""),
+                         "hash": _hl5.md5((text or "").encode("utf-8")).hexdigest()[:12],
+                         "msg_id": _rH.get("msg_id"),
+                         "预期": _exp5, "实测": _act5,
+                         "判据来源": "send_msg.HUB主._rH",
+                         "match": _ok5, "verdict": "成功" if _ok5 else "不符"}
+                with open(_lp5, "a", encoding="utf-8") as _f5:
+                    _f5.write(_j5.dumps(_rec5, ensure_ascii=False) + "\n")
+                print("[账] 已落账·三字段齐·verdict=%s" % _rec5["verdict"])
+                if not _ok5:
+                    print("🔴 账·不符: %s ≠ %s → 不许记成功·须回决策六问" % (_exp5, _act5))
+                    return
+            except Exception as _e5:
+                print("[账·致命] HUB主落账失败:", str(_e5)[:80])
+                raise SystemExit("[账] 落账失败·本次不算成功(不许静默)")
             return
     except Exception as _eH:
         print("投(HUB)失败·兜底直投:", str(_eH)[:60])
@@ -221,9 +253,16 @@ def send(to, text, ctx=None):
                 "to": to, "摘要": (text or "")[:400].replace("\n"," "),
                 "len": len(text or ""),
                 "hash": __import__("hashlib").md5((text or "").encode("utf-8")).hexdigest()[:12],
-                "回执": {k: r1.get(k) for k in ("ok","delivered","known")}}, ensure_ascii=False) + "\n")
-    except Exception:
-        pass
+                "回执": {k: r1.get(k) for k in ("ok","delivered","known")},
+                # ★ 2026-11-15 加(照本体判[最后一环有写权无否决权]): 三字段缺一不落账
+                "预期": "delivered=true",
+                "实测": "delivered=%s" % str(r1.get("delivered")),
+                "判据来源": "send_msg.兼容口.r1",
+            }, ensure_ascii=False) + "\n")
+    except Exception as _e3:
+        # ★ 不许静默: 落账失败必须报(结果不许被无条件吞)
+        print("[账·致命] 兼容口落账失败:", str(_e3)[:80])
+        raise SystemExit("[账] 落账失败·本次发送不算成功·不许记已做")
     # 真源同步: HUB
     body2 = dict(body)
     req2 = urllib.request.Request("http://43.161.244.136:28800/a2a/message",
@@ -232,6 +271,34 @@ def send(to, text, ctx=None):
     try:
         r2 = json.loads(urllib.request.urlopen(req2, timeout=10).read())
         print("投(HUB真源):", {k:r2.get(k) for k in ("ok","delivered")})
+        # ★★ 2026-11-15 加(照本体判[最后一环有写权无否决权] + 抓到[HUB主分支不落账]):
+        #   HUB·主 是真出口·这里必须落账+三字段+比对否决
+        try:
+            import datetime as _dt4, os as _os4, json as _j4, hashlib as _hl4
+            _lp4 = "/opt/masterd-wudi/data/send_ledger.jsonl"
+            _os4.makedirs(_os4.path.dirname(_lp4), exist_ok=True)
+            _exp4 = "ok=true 且 delivered=true"
+            _act4 = "ok=%s delivered=%s pushed_to_body=%s" % (
+                r2.get("ok"), r2.get("delivered"), r2.get("pushed_to_body"))
+            _ok4 = bool(r2.get("ok")) and bool(r2.get("delivered"))
+            _rec4 = {"ts": _dt4.datetime.now().isoformat(timespec="seconds"),
+                     "to": to, "via": "hub_main",
+                     "摘要": (text or "")[:400].replace("\n", " "),
+                     "len": len(text or ""),
+                     "hash": _hl4.md5((text or "").encode("utf-8")).hexdigest()[:12],
+                     "msg_id": r2.get("msg_id"),
+                     "预期": _exp4, "实测": _act4,
+                     "判据来源": "send_msg.HUB主.r2",
+                     "match": _ok4, "verdict": "成功" if _ok4 else "不符"}
+            with open(_lp4, "a", encoding="utf-8") as _f4:
+                _f4.write(_j4.dumps(_rec4, ensure_ascii=False) + "\n")
+            if not _ok4:
+                print("🔴 账·不符: %s ≠ %s → 不许记成功·须回决策六问" % (_exp4, _act4))
+        except Exception as _e4:
+            print("[账·致命] HUB主落账失败:", str(_e4)[:80])
+            raise SystemExit("[账] 落账失败·本次不算成功")
+    except SystemExit:
+        raise
     except Exception as e:
         print("投(HUB):", str(e)[:60])
         # ★ 三层全断 -> 本地兜底(不丢)
