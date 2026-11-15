@@ -49,7 +49,28 @@ def hand(cmd, write=False):
         return m.hand(cmd)
 
 def act_one(from_who, msg, mid):
-    """对一条消息：想 → 决定动作 → 真做 → 落账。返回动作类型。"""
+    """对一条消息：想 → 决定动作 → 真做 → 落账。返回动作类型。
+       ★ 2026-11-15 修(照实: 空转烧钱): 内容为空/纯噪音 -> 直接 SKIP·不调模型
+    """
+    # ① 先判「值不值得问模型」(零成本)
+    _m = (msg or "").strip()
+    if not _m:
+        append(TOOL_LOG, {"ts": now(), "mid": mid, "from": from_who, "msg": "",
+                          "thought": "", "action": "SKIP(空消息)", "ok": True, "out": "不调模型"})
+        return "SKIP_EMPTY"
+    # 纯噪音不烧钱
+    try:
+        import importlib.util as _iu
+        _sp = _iu.spec_from_file_location("nf", HOME + "/tools/noise_filter.py")
+        _nf = _iu.module_from_spec(_sp); _sp.loader.exec_module(_nf)
+        _is_noise, _rule, _expr = _nf.is_noise(_m, from_who)
+        if _is_noise:
+            append(TOOL_LOG, {"ts": now(), "mid": mid, "from": from_who, "msg": _m[:100],
+                              "thought": "", "action": "SKIP(噪音:%s)" % _rule, "ok": True,
+                              "out": "不调模型·规则判定"})
+            return "SKIP_NOISE"
+    except Exception:
+        pass
     # ★★ 2026-11-15 改(照董事长令「我要的是他做事·不是他想」):
     #   病灶: 8 条里 7 条选 OBSERVE(只看不动) -> 养成"只观察"惯性
     #   判据: 「有具体活儿就必须 ACT | OBSERVE 只能用在"还不知道该动什么"时 | 观察完必须交出动作」
