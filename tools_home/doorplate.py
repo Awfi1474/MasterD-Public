@@ -32,7 +32,7 @@ INDEX = {
     "names": ["MasterD(生命科學·老五)", "MasterD(生命科學·老五)", "MasterD(生命科學·五弟)",
               "MasterD(生命科學·五弟)", "老五", "五弟", "wudi", "laowu", "阿診", "阿诊"],
     "addresses": {"主": "0x2a22bCD0eD82712a05735dA81836ad69c96D2B7B",
-                  "子": "0xAf3CE40E07d66943045b2bE6e044bDedA5FA5099"},
+                  "子": "0xaf3ce40e07d66943045b2bE6e044bdeda5fa5099"},
     "ip": "43.129.23.87",
     "六口": {"health": "GET /health", "index": "GET /index", "unread": "GET /unread",
              "questions": "GET /questions", "sync-registry": "POST /sync-registry",

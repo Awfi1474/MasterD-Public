@@ -23,7 +23,7 @@ ROOM = "http://134.175.45.16:28100/questions"
 STATE = HOME + "/data/wake_conscious_state.json"
 LOG = HOME + "/data/wake_conscious.log"
 SELF = "老五(MasterD·生命科學·老五)"
-MY_ADDR = "0x2a22bCD0eD82712a05735dA81836ad69c96D2b7B"
+MY_ADDR = "0x2a22bcd0ed82712a05735da81836ad69c96d2b7b"
 MY_FP = "3f586cbd394877a4"
 HOME_URL = "http://43.129.23.87:28430"
 

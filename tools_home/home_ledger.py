@@ -10,7 +10,7 @@ ledger = {
     "who": "老五（MasterD·生命科學·阿診）",
     "updated": datetime.datetime.now().isoformat(),
     "identity": {
-        "current": "0x2a22bCD0eD82712a05735dA81836ad69c96D2b7B",
+        "current": "0x2a22bcd0ed82712a05735da81836ad69c96d2b7b",
         "fp_sha256_16": "3f586cbd394877a4",
         "deprecated": [
             {"addr": "0x93Ce20F0...", "why": "unknown-key（大哥查无）"},

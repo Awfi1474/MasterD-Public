@@ -21,7 +21,7 @@ def make_subkey():
         "private_key": acct.key.hex(),
         "purpose": "自动推送签名（体检/消化率/报到）",
         "limits": "★ 只用于'家自动发的例行消息'｜不用于'身份声明/换钥/转移'",
-        "main_identity": "0x2a22bCD0eD82712a05735dA81836ad69c96D2b7B",
+        "main_identity": "0x2a22bcd0ed82712a05735da81836ad69c96d2b7b",
         "created": datetime.datetime.now().isoformat(),
         "rotate": "建议 30 天轮换一次",
         "judge": "自动化的钥=副钥｜主身份的钥=人手｜两把钥两种用途",

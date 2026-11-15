@@ -5,8 +5,8 @@
 import json, sys, os
 from datetime import datetime, timezone, timedelta
 
-MY_ADDR = "0x2a22bCD0eD82712a05735dA81836ad69c96D2b7B"
-SUB_ADDR = "0xAf3CE40E07D66943045b2bE6E044bDedA5FA5099"
+MY_ADDR = "0x2a22bcd0ed82712a05735da81836ad69c96d2b7b"
+SUB_ADDR = "0xaf3ce40e07d66943045b2bE6e044bdeda5fa5099"
 CST = timezone(timedelta(hours=8))
 
 # ★ 判据总线（治写在器里没人查）

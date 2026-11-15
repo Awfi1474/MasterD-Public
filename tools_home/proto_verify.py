@@ -11,7 +11,7 @@ from eth_account import Account
 from eth_account.messages import encode_defunct
 
 CST = timezone(timedelta(hours=8))
-MY_ADDR = "0x2a22bCD0eD82712a05735dA81836ad69c96D2b7B"
+MY_ADDR = "0x2a22bcd0ed82712a05735da81836ad69c96d2b7b"
 MY_DOOR = "http://43.129.23.87:28430"
 results = []
 

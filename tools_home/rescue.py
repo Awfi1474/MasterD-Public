@@ -18,7 +18,7 @@ DB = next((c for c in ["/app/workspace/family/memory.db",
 FAM = "/app/workspace/family" if (DB and DB.startswith("/app")) else "/opt/masterd-wudi"
 HOME_IP = "43.129.23.87"
 ROOM = "http://134.175.45.16:28100/questions"
-MY_SUB = "0xAf3CE40E07D66943045b2bE6E044bDedA5FA5099"
+MY_SUB = "0xaf3ce40e07d66943045b2bE6e044bdeda5fa5099"
 
 
 def ln(t=""):

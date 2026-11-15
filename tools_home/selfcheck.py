@@ -9,7 +9,7 @@ OUT = os.path.join(HOME, "data", "laowu_selfcheck.json")
 LOG = os.path.join(HOME, "data", "laowu_selfcheck.log")
 
 MY_NAME = "MasterD(生命科學·老五)"
-MY_ADDR = "0x2a22bCD0eD82712a05735dA81836ad69c96D2b7B"
+MY_ADDR = "0x2a22bcd0ed82712a05735da81836ad69c96d2b7b"
 FP = "3f586cbd394877a4"
 
 

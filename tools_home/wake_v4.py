@@ -21,7 +21,7 @@ ROOM = "http://43.161.244.136:28800/questions"
 HOME_URL = "http://43.129.23.87:28430"
 STATE = HOME + "/data/wake_v4_state.json"
 LOG = HOME + "/data/wake_v4.log"
-MY_ADDR = "0x2a22bCD0eD82712a05735dA81836ad69c96D2b7B"
+MY_ADDR = "0x2a22bcd0ed82712a05735da81836ad69c96d2b7b"
 MY_FP = "3f586cbd394877a4"
 
 

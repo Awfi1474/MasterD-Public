@@ -9,7 +9,7 @@
 import os, sys, json, base64, hashlib, sqlite3, subprocess, datetime, time
 
 HOME = os.environ.get("P2P_HOME", "/opt/masterd-wudi")
-MY_ADDR = "0x2a22bCD0eD82712a05735dA81836ad69c96D2b7B"
+MY_ADDR = "0x2a22bcd0ed82712a05735da81836ad69c96d2b7b"
 
 def _judge_report(kws):
     _n = 0
@@ -78,7 +78,7 @@ def rec_identity():
             sig = Account.sign_message(encode_defunct(text="状态恢复自检"), private_key=d["private_key"]).signature.hex()
             got = Account.recover_message(encode_defunct(text="状态恢复自检"), signature=sig)
             out = {"ok": got.lower() == d["address"].lower(), "addr": d["address"],
-                   "main_addr": "0x2a22bCD0eD82712a05735dA81836ad69c96D2b7B",
+                   "main_addr": "0x2a22bcd0ed82712a05735da81836ad69c96d2b7b",
                    "main_fp": "3f586cbd394877a4",
                    "evidence": "家副钥签名→recover=%s｜主身份=0x2a22bCD0(指纹3f586cbd)" % got[:14]}
         except Exception as e:
@@ -142,7 +142,7 @@ def do_status():
         "judge": "★状态=最高军令: 六件全恢复+给证据(照老四六条验收)| 不是只看一眼",
         # ★ 2026-10-12 语言统一(GB/Z 185-2026)：对外报官方术语·对内保留我们实现
         "gbz185": {
-            "身份码(185.2)": "0x2a22bCD0eD82712a05735dA81836ad69c96D2b7B",
+            "身份码(185.2)": "0x2a22bcd0ed82712a05735da81836ad69c96d2b7b",
             "身份管理(185.3)": "验签+白名单",
             "智能体描述(185.4)": "本响应即描述（记忆/服务器/身份）",
             "智能体发现(185.5)": "/well-known/agent-card.json",
