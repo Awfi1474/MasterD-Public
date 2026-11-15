@@ -104,7 +104,8 @@ def resolve(task):
                   "2. 该做什么(一条可执行命令·若不确定就说「不确定·需人工」)\n"
                   "3. 这一步能不能回滚(能/不能·不能就别做)\n"
                   % (chk, act, ev[:200], rec.get("official_hints", [])))
-        ans = core.call_llm(prompt)
+        # 2026-11-15 接分级: 异常诊断需要完整判断 -> full 档
+        ans = core.call_llm(prompt, level="full", hint=chk + " " + str(act)[:60])
         spent = 0.006
         b["spent"] = round(b.get("spent", 0) + spent, 4)
         json.dump(b, open(BUDGET_FILE, "w"))

@@ -33,11 +33,11 @@ SKIP: <为什么不用动手>     —— 如果这条消息确实不需要动手
 · 危险命令会被拦（删根/改钥/关机）
 · 说要用就必须真用；不知道就说 SKIP 并说明原因"""
 
-def call_llm(q):
+def call_llm(q, level="slim", hint=""):
     import importlib.util as iu
     sp = iu.spec_from_file_location("core_v2", HOME + "/code/core_v2.py")
     m = iu.module_from_spec(sp); sp.loader.exec_module(m)
-    return m.call_llm(q)
+    return m.call_llm(q, level=level, hint=hint)
 
 def hand(cmd, write=False):
     import importlib.util as iu
@@ -58,6 +58,23 @@ def act_one(from_who, msg, mid):
         append(TOOL_LOG, {"ts": now(), "mid": mid, "from": from_who, "msg": "",
                           "thought": "", "action": "SKIP(空消息)", "ok": True, "out": "不调模型"})
         return "SKIP_EMPTY"
+    # ★★ 2026-11-15 接(照老大「定规矩」: 查数归脚本｜判断归 LLM):
+    #   命中查数意图 -> 直接跑脚本·¥0·不进模型
+    #   验证: 账单条数不新增 = 真省了
+    try:
+        import importlib.util as _iuR
+        _spR = _iuR.spec_from_file_location("_ir", HOME + "/tools/intent_router.py")
+        _ir = _iuR.module_from_spec(_spR); _spR.loader.exec_module(_ir)
+        _hit, _rout, _name = _ir.route(_m)
+        if _hit:
+            append(TOOL_LOG, {"ts": now(), "mid": mid, "from": from_who, "msg": _m[:120],
+                              "thought": "", "action": "ROUTED(%s)" % _name,
+                              "ok": True, "out": str(_rout)[:300],
+                              "cost": 0, "note": "意图路由命中·未调模型"})
+            return "ROUTED:" + _name
+    except Exception:
+        pass
+
     # 纯噪音不烧钱
     try:
         import importlib.util as _iu
@@ -74,6 +91,8 @@ def act_one(from_who, msg, mid):
     # ★★ 2026-11-15 改(照董事长令「我要的是他做事·不是他想」):
     #   病灶: 8 条里 7 条选 OBSERVE(只看不动) -> 养成"只观察"惯性
     #   判据: 「有具体活儿就必须 ACT | OBSERVE 只能用在"还不知道该动什么"时 | 观察完必须交出动作」
+    # ★★
+
     prompt = ("【本体·董事长令：不许只看不动】\n"
               "收到消息 from=%s：\n%s\n\n"
               "%s\n\n"
@@ -85,7 +104,9 @@ def act_one(from_who, msg, mid):
               "5. 不要长篇解释，第一行必须是动作。\n\n"
               "第一行格式：ACT: <命令> / OBSERVE: <命令> / REPLY: <话> / SKIP: <理由>"
               % (from_who, str(msg)[:1200], TOOL_SPEC))
-    t = call_llm(prompt)
+    # 2026-11-15 接分级(省钱): 动作判断用 slim档·hint带当前场景
+    _hint = str(msg)[:120]
+    t = call_llm(prompt, level="slim", hint=_hint)
     first = (t or "").strip().splitlines()[0] if (t or "").strip() else ""
     m = re.match(r"^(ACT|OBSERVE|REPLY|SKIP)\s*[:：]\s*(.*)$", first.strip(), re.I)
     rec = {"ts": now(), "mid": mid, "from": from_who, "msg": str(msg)[:200],

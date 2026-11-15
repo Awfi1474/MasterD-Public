@@ -54,7 +54,8 @@ def think(msg):
         import importlib.util
         spec = importlib.util.spec_from_file_location("core_v2", spec_path)
         m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
-        return m.call_llm(msg)[:3000]
+        # 2026-11-15 接分级(省钱): 读消息思考用 slim 档
+        return m.call_llm(msg, level="slim", hint=str(msg)[:120])[:3000]
     except Exception as e:
         return "(think err: %s)" % str(e)[:80]
 
