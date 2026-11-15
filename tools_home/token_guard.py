@@ -61,13 +61,27 @@ def today_spent(day=None):
 def today_calls(day=None):
     return len(_rows(day))
 
-def allowed(est_cost=0.005):
-    """调用前检查: 未超上限才放行"""
+def avg_cost(n=50):
+    """★ 按最近 n 次实际花费求平均(不许用拍脑袋的估算)"""
+    rows = _rows()
+    if not rows:
+        return 0.008
+    recent = rows[-n:]
+    return round(sum(float(r.get("cost", 0)) for r in recent) / len(recent), 6)
+
+
+def allowed(est_cost=None):
+    """调用前检查: 未超上限才放行
+       ★ 2026-11-15 修(照实): 估算按近期实际平均·留 20% 余量
+    """
     lim = get_limit()
     spent = today_spent()
+    if est_cost is None:
+        est_cost = max(0.008, avg_cost() * 1.2)     # 实际平均 + 20% 余量
     if spent + est_cost > lim:
-        return False, "🔴 今日已花 ¥%.2f / 上限 ¥%.2f -> 拒绝调用(超上限)" % (spent, lim)
-    return True, "ok(已花 ¥%.2f / ¥%.2f)" % (spent, lim)
+        return False, ("🔴 今日已花 ¥%.2f + 本次估 ¥%.4f > 上限 ¥%.2f -> 拒绝调用"
+                       % (spent, est_cost, lim))
+    return True, "ok(已花 ¥%.2f / ¥%.2f·本次估 ¥%.4f)" % (spent, lim, est_cost)
 
 def record(provider, model, in_chars, out_chars, ok=True, note=""):
     """记一条。token≈字符数/1.6（中文粗估）"""

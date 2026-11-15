@@ -71,6 +71,40 @@ def check_ledger():
                     "detail": "今日 %d 条·不符 %d 条" % (tot, bad)})
     return out
 
+
+
+def check_fail_ledger():
+    """★ 2026-11-15 加: 失败必须入账(本体判「账里只有成功是宣传」)"""
+    out = []
+    try:
+        import importlib.util as _iu2
+        sp = _iu2.spec_from_file_location("fl", HOME + "/tools/fail_ledger.py")
+        m = _iu2.module_from_spec(sp); sp.loader.exec_module(m)
+        st = m.stats()
+        tot = sum(st.values()) if st else 0
+        out.append({"chk": "fail:ledger", "ok": tot < 50,
+                    "detail": "今日失败落账 %d 条%s" % (tot, ("·Top:" + list(st)[0]) if st else "")})
+    except Exception as e:
+        out.append({"chk": "fail:ledger", "ok": False, "detail": "err " + str(e)[:50]})
+    return out
+
+
+def check_guard():
+    """★ 2026-11-15 加: 自动扫「调模型但没过闸」(不靠人记得)"""
+    out = []
+    try:
+        import importlib.util as _iu
+        sp = _iu.spec_from_file_location("ac", HOME + "/tools/anticheat.py")
+        m = _iu.module_from_spec(sp); sp.loader.exec_module(m)
+        r = m.report(save=False)
+        risk = r["结果"]["未过闸"]
+        out.append({"chk": "guard:llm", "ok": risk == 0,
+                    "detail": "调模型 %d 个·未过闸 %d" % (r["结果"]["总调模型文件"], risk)})
+    except Exception as e:
+        out.append({"chk": "guard:llm", "ok": False, "detail": "err " + str(e)[:60]})
+    return out
+
+
 def check_unread():
     """未读积压"""
     try:
@@ -110,7 +144,7 @@ def check_cost():
 
 def patrol():
     res = []
-    for fn in (check_services, check_ports, check_ledger, check_unread, check_disk, check_cost):
+    for fn in (check_services, check_ports, check_ledger, check_unread, check_disk, check_cost, check_guard, check_fail_ledger):
         try:
             res.extend(fn())
         except Exception as e:

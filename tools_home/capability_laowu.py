@@ -58,6 +58,19 @@ def _llm(provider, question, image_b64=None):
     key = _key(keyfile)
     if not key:
         return False, "no key: " + keyfile
+
+    # ★★ 2026-11-15 焊(照实: 此文件直调 API·绕过 token_guard / 董事长问"会不会再出现")
+    #   判据: 「闸必须装在唯一出口｜不然限多少都白设」
+    try:
+        import importlib.util as _iuG
+        _spG = _iuG.spec_from_file_location("_tgG", "/opt/masterd-wudi/tools/token_guard.py")
+        _tgG = _iuG.module_from_spec(_spG); _spG.loader.exec_module(_tgG)
+        _okG, _msgG = _tgG.allowed()
+        if not _okG:
+            print("[用量闸] " + _msgG)
+            return False, "(用量闸拦: 今日已达上限)"
+    except Exception:
+        pass
     um = {"role": "user", "content": question}
     if image_b64:
         um = {"role": "user", "content": [
@@ -80,7 +93,16 @@ def _llm(provider, question, image_b64=None):
     try:
         with urllib.request.urlopen(req, timeout=90) as r:
             d = json.loads(r.read())
-            return True, d["choices"][0]["message"]["content"]
+            _txt = d["choices"][0]["message"]["content"]
+            # 2026-11-15 焊: 记账(调用成功必须留痕)
+            try:
+                import importlib.util as _iuW2
+                _spW2 = _iuW2.spec_from_file_location("_tgW2", "/opt/masterd-wudi/tools/token_guard.py")
+                _tgW2 = _iuW2.module_from_spec(_spW2); _spW2.loader.exec_module(_tgW2)
+                _tgW2.record(provider, model, len(question or "") + 3000, len(_txt or ""), ok=True)
+            except Exception:
+                pass
+            return True, _txt
     except Exception as e:
         return False, str(e)[:150]
 

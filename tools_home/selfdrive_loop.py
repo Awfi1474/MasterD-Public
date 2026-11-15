@@ -102,7 +102,7 @@ def one_round(n):
         steps["③④自动修"] = "ERR " + str(e)[:60]
         fixed = 0
 
-    # ⑤ 队列状态 + 花费
+    # ⑤ 队列状态
     try:
         tq = load("tq", HOME + "/tools/task_queue.py")
         pend = tq.pending()
@@ -111,6 +111,47 @@ def one_round(n):
     except Exception as e:
         steps["⑤队列"] = "ERR " + str(e)[:60]
         need_model = []
+
+    # ★★ ⑥ A 开启: 需模型项自动按四层处置(2026-11-15 董事长令)
+    #   顺序: 查卡(¥0) → 问兄弟(¥0) → 拉官方(¥0) → 调模型(¥0.006·有上限)
+    #   每案最多处置 1 张(防一轮烧太多)
+    if need_model:
+        try:
+            ir = load("ir", HOME + "/tools/incident_resolver.py")
+            t = need_model[0]
+            ok, ans, trail = ir.resolve(t)
+            layers = [str(x.get("layer")) for x in trail]
+            steps["⑥A处置"] = "%s → %s (走层:%s)" % (t["chk"], "解决" if ok else "未决",
+                                                     ",".join(layers))
+            # 落账: 处置结果 + 是否可执行
+            try:
+                import json as _j
+                with open(HOME + "/data/a_resolve_log.jsonl", "a", encoding="utf-8") as f:
+                    f.write(_j.dumps({"ts": ts(), "round": n, "id": t.get("id"),
+                                      "chk": t.get("chk"), "resolved": ok,
+                                      "layers": layers, "answer": str(ans)[:500],
+                                      "trail": trail}, ensure_ascii=False) + "\n")
+            except Exception:
+                pass
+            # ★ 只有「真解决且过闸」才关单；否则留着等人工
+            if ok and not str(ans).startswith("【猜"):
+                gate_ok = True
+                try:
+                    gt = load("gt", HOME + "/tools/gates.py")
+                    g = gt.can_execute("L1" if "卡片" in str(ans) else "L2",
+                                       str(ans), "", "来自 incident_resolver")
+                    gate_ok = g.get("allow", False)
+                    steps["⑥A处置"] += " | 闸:%s" % ("过" if gate_ok else g.get("why", "")[:40])
+                except Exception:
+                    gate_ok = False
+                if gate_ok:
+                    tq.close(t["id"], by="A-resolver",
+                             note="自动处置: " + str(ans)[:150],
+                             verify={"输入": "%s/%s" % (t.get("chk"), str(t.get("evidence"))[:60]),
+                                     "算子": "四层处置(层:%s)" % ",".join(layers),
+                                     "重跑": "下轮巡检复核"})
+        except Exception as e:
+            steps["⑥A处置"] = "ERR " + str(e)[:80]
 
     try:
         tg = load("tg", HOME + "/tools/token_guard.py")
