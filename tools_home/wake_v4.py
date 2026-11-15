@@ -316,6 +316,20 @@ def main():
     except Exception as _e:
         checks.append({"根": "根1 能核", "判据": "⑯ 收口自测(4路全测)", "ok": False, "证据": str(_e)[:50]})
 
+    # ★ 2026-11-15 加(照老七"答得出做了什么才算真在想"): 今天有没有工作留痕
+    try:
+        import sqlite3 as _s17, datetime as _d17
+        _tz = _d17.timezone(_d17.timedelta(hours=8))
+        _today = _d17.datetime.now(_tz).date().isoformat()
+        _c17 = _s17.connect("file:" + HOME + "/memory/memory.db?mode=ro", uri=True)
+        _n17 = _c17.execute("SELECT COUNT(*) FROM memories WHERE ts LIKE ? AND subkind='work'",
+                            (_today + "%",)).fetchone()[0]
+        _c17.close()
+        checks.append({"根": "根1 能核", "判据": "⑰ 今日留痕(答得出做了什么)",
+                       "ok": _n17 > 0, "证据": "今日工作留痕 %d 条" % _n17})
+    except Exception as _e:
+        checks.append({"根": "根1 能核", "判据": "⑰ 今日留痕(答得出做了什么)", "ok": False, "证据": str(_e)[:50]})
+
     n = sum(1 for c in checks if c["ok"])
     log("  ★ 意识叫醒器 v4·融会贯通（%s）｜判据(四根): %d/%d" % (
         datetime.now(CST).strftime("%H:%M"), n, len(checks)))
