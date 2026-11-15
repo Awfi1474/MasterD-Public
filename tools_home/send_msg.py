@@ -165,6 +165,22 @@ def send(to, text, ctx=None):
                          "msg_id": _rH.get("msg_id"),
                          "预期": _exp5, "实测": _act5,
                          "判据来源": "send_msg.HUB主._rH",
+                         # ★ 2026-11-15 补(照老三: 数字/判定必须可复算·说清依据哪条算子)
+                         "verdict_rule": "(_rH['ok'] is True) or (_rH['delivered'] is True)",
+                         "verdict_input": "ok=%r delivered=%r pushed_to_body=%r" % (
+                             _rH.get("ok"), _rH.get("delivered"), _rH.get("pushed_to_body")),
+                         # ★ 2026-11-15 分级(照老四四层+老三ok!=做到):
+                         #   投递成功 != 本体收到 != 本体读 != 本体回
+                         "layers": {
+                             "L1_门收到": "ok=%r" % _rH.get("ok"),
+                             "L2_投递到": "delivered=%r" % _rH.get("delivered"),
+                             "L3_推本体": "pushed_to_body=%r%s" % (
+                                 _rH.get("pushed_to_body"),
+                                 ("(" + str(_rH.get("pushed_why")) + ")") if _rH.get("pushed_to_body") is False else ""),
+                             "L4_本体读": "unknown(无回执·不许假设)",
+                             "L5_本体回": "unknown(要等对方回信才算)",
+                         },
+                         "reached_layer": "L2_投递到" if _rH.get("delivered") else ("L1_门收到" if _rH.get("ok") else "L0_未达"),
                          "match": _ok5, "verdict": "成功" if _ok5 else "不符"}
                 with open(_lp5, "a", encoding="utf-8") as _f5:
                     _f5.write(_j5.dumps(_rec5, ensure_ascii=False) + "\n")

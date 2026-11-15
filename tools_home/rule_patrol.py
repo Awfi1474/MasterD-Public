@@ -26,7 +26,7 @@ def sh(c, t=10):
     except Exception as e:
         return False, str(e)[:80]
 
-def http(url, t=5):
+def http(url, t=12):   # FIX 2026-11-15: 5s 太短 -> 误判(oS): 老六教[别超时就判慢]
     try:
         with urllib.request.urlopen(url, timeout=t) as r:
             return True, r.status
@@ -116,6 +116,31 @@ def patrol():
         except Exception as e:
             res.append({"chk": fn.__name__, "ok": False, "detail": "ERR " + str(e)[:60]})
     bad = [r for r in res if not r["ok"]]
+    # ★★ 2026-11-15 焊(照本体判[缺一个手·巡检只开单]):
+    #   判据: 「发现问题≠解决问题｜巡检开单·执行端接单」
+    try:
+        import importlib.util as _iu
+        _sp = _iu.spec_from_file_location("tq", HOME + "/tools/task_queue.py")
+        _tq = _iu.module_from_spec(_sp)
+        _sp.loader.exec_module(_tq)
+        _SUGGEST = {
+            "unread": ("P2", "归档最老的未读消息(规则可自动)", True),
+            "log:daemon": ("P2", "轮转日志(规则可自动)", True),
+            "disk": ("P0", "清理磁盘·需判断清什么", False),
+            "cost": ("P0", "今日花费接近上限·需董事长决定", False),
+            "port:28430": ("P1", "自家口不通·需查为什么", False),
+            "ledger:send": ("P1", "账里有不符·需查原因", False),
+        }
+        for _r in bad:
+            _chk = _r["chk"]
+            _sev, _act, _auto = "P1", "需人工判断", False
+            if _chk in _SUGGEST:
+                _sev, _act, _auto = _SUGGEST[_chk]
+            elif _chk.startswith("service:"):
+                _sev, _act, _auto = "P0", "服务挂了·规则可自动重启", True
+            _tq.open_task("patrol", _sev, _chk, _act, evidence=_r.get("detail", ""), auto=_auto)
+    except Exception:
+        pass
     rec = {"ts": ts(), "total": len(res), "bad": len(bad), "items": res}
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, "a", encoding="utf-8") as f:
