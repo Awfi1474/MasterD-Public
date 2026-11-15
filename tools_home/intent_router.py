@@ -64,13 +64,21 @@ def _card_lookup(msg):
     return True, (o or "无匹配卡").strip()[:400]
 
 # (正则, 函数, 说明)
+# ★ 2026-11-15 修(照实: 规则太宽·「大哥→老五·任务认领机制」被误判成"服务状态")
+#   判据(老七): 「宁可漏·不可错｜误命中比不命中更坏」
+#   修: ① 必须有明确的问句标记（在不在/几条/多少/通不通/够吗/是多少）
+#       ② 短句优先（长文多半是转发/讨论·不是问数）
+#       ③ 排除转发标记（→ 老五 · 转 · 引用 · 照抄）
+SHORT_MAX = 200          # 超过这个长度不当"查数问句"
+EXCLUDE = ("[link]", "转发", "引用", "照抄", "原文:", "**★")
+
 RULES = [
-    (r"(在不在|活不活|活着|服务.*状态|进程.*在|投产没|health)", _svc_state, "服务状态"),
-    (r"(账.*几条|几条账|账本|账里|不符.*几条|发信.*多少)", _ledger_count, "账条数"),
-    (r"(未读.*几条|几封|信堆|没读)", _unread_count, "未读条数"),
-    (r"(端口|通不通|连不上|refused|超时).*\d{4,5}|\d{4,5}.*(通|不通)", _port_check, "端口探测"),
-    (r"(花了多少|花费|成本|多少钱|budget|额度)", _cost_today, "花费"),
-    (r"(磁盘|disk|空间够|盘满)", _disk_usage, "磁盘"),
+    (r"(你在不在|老五在不在|服务.{0,6}(活|跑|状态)|进程.{0,6}在|投产没|/health)", _svc_state, "服务状态"),
+    (r"(账.{0,6}几条|几条账|账里.{0,4}(几条|多少)|不符.{0,4}几条|发信.{0,4}多少)", _ledger_count, "账条数"),
+    (r"(未读.{0,4}(几条|多少|几封)|几封.{0,4}(未读|信)|信堆)", _unread_count, "未读条数"),
+    (r"(\d{4,5}\s*(端口)?\s*(通不通|通吗|连不上)|端口.{0,4}\d{4,5})", _port_check, "端口探测"),
+    (r"(花了多少|花费.{0,4}多少|成本.{0,4}多少|多少钱|budget|额度.{0,4}(剩|多少))", _cost_today, "花费"),
+    (r"(磁盘.{0,4}(够|满|多少)|disk|空间.{0,4}(够|够吗))", _disk_usage, "磁盘"),
 ]
 
 def route(msg):
@@ -79,6 +87,11 @@ def route(msg):
     """
     text = (msg or "").strip()
     if not text:
+        return False, None, None
+    # ★ 修(照实): 长文/转发/引用 不当查数问句
+    if len(text) > SHORT_MAX:
+        return False, None, None
+    if any(x in text for x in EXCLUDE):
         return False, None, None
     for pat, fn, name in RULES:
         if re.search(pat, text, re.I):
