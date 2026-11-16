@@ -241,6 +241,7 @@ def send(to, text, ctx=None):
         if ctx:
             _msg["contextId"] = str(ctx)
         # ★ 2026-11-13 加官方门禁(照董事长"每次行为都按标准"·源头a2a.proto)
+        r1 = {}   # 2026-11-16 修复: 兼容口失败时落账用 r1 会崩
         try:
             sys.path.insert(0, "/opt/masterd-wudi/tools")
             from official_gate import check as _gate
@@ -294,10 +295,10 @@ def send(to, text, ctx=None):
                 "to": to, "摘要": (text or "")[:400].replace("\n"," "),
                 "len": len(text or ""),
                 "hash": __import__("hashlib").md5((text or "").encode("utf-8")).hexdigest()[:12],
-                "回执": {k: r1.get(k) for k in ("ok","delivered","known")},
+                "回执": {k: r1.get(k) for k in ("ok","delivered","known")} if r1 else {"note": "兼容口未返回(可能失败)"},
                 # ★ 2026-11-15 加(照本体判[最后一环有写权无否决权]): 三字段缺一不落账
                 "预期": "delivered=true",
-                "实测": "delivered=%s" % str(r1.get("delivered")),
+                "实测": ("delivered=%s" % str(r1.get("delivered"))) if r1 else "delivered=None(兼容口失败)",
                 "判据来源": "send_msg.兼容口.r1",
             }, ensure_ascii=False) + "\n")
     except Exception as _e3:
