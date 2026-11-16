@@ -212,10 +212,10 @@ def send(to, text, ctx=None):
     _ok_official = False
     try:
         # ★ 2026-11-12 改(照董事长令"发消息一律官方字段·暂停家族字段"):
-        #   官方: role(user/agent)+parts[{kind,text}]+messageId+contextId
+        #   官方: role(user/agent)+parts[{text}]+messageId+contextId（无 kind）
         #   别再塞家族 from/to 到 metadata(官方无此)
         # ★ 2026-11-16 改(照全族统一口径 v1·官方骨架+metadata放自造字段)
-        #   官方顶层: role / parts[{kind,text}] / metadata
+        #   官方顶层: role / parts[{text}] / metadata（官方 parts 无 kind）
         #   自造: from/to/ts/address/sig 全放 metadata（官方允许）
         import uuid as _uuid
         import datetime as _dtU
@@ -234,7 +234,7 @@ def send(to, text, ctx=None):
         except Exception:
             pass
         _msg = {"role": "ROLE_USER", "messageId": "msg-" + _uuid.uuid4().hex[:12],
-                "parts": [{"kind": "text", "text": text}],
+                "parts": [{"text": text}],
                 "metadata": {"from": ME, "to": to, "ts": _tsU,
                              "address": _addrU, "sig": _sigU,
                              "口径": "全族统一口径v1"}}
