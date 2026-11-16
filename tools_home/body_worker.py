@@ -25,8 +25,9 @@ def log(s):
     except Exception: pass
 
 def unread():
-    """读 inbox 里未读的真消息(跳过纯探活)"""
+    """读 inbox 里未读的真消息(跳过纯探活·★跳发给别人的)"""
     out = []
+    _SKIP2 = []
     if not os.path.exists(INBOX): return out
     for l in open(INBOX, encoding="utf-8", errors="ignore"):
         if not l.strip(): continue
@@ -44,7 +45,15 @@ def unread():
         if not mid:
             import hashlib as _h
             mid = "k-" + _h.md5(("%s|%s|%s" % (b.get("from") or "", b.get("ts") or "", t[:80])).encode("utf-8")).hexdigest()[:16]
-        out.append({"mid": mid, "from": str(b.get("from") or "")[:20], "msg": t[:2000], "ts": str(b.get("ts") or "")})
+        # ★ 2026-11-16 修(照老三判据: 本体只思考发给自己的|别人的信=转发即可·不叫模型)
+        _to = str(b.get("to") or b.get("recipient") or "").strip()
+        _MYNAMES = ("老五", "阿诊", "lao5", "五弟", "五哥", "masterd(生命科学·五弟)", "masterd(医疗·五弟)")
+        if _to and not any(nm and nm in _to.lower() for nm in _MYNAMES):
+            # 明确发给别人的 -> 跳过 think(不白烧)·但仍记 read 由下游处理
+            _SKIP2.append(mid)
+            continue
+        out.append({"mid": mid, "from": str(b.get("from") or "")[:20],
+                    "to": _to[:24], "msg": t[:2000], "ts": str(b.get("ts") or "")})
     return out
 
 def think(msg):
