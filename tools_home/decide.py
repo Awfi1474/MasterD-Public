@@ -377,7 +377,7 @@ def decide(what):
 
     # ── 留痕 ──
     rec = {"ts": t, "决定": what[:120], "八问齐": n_ok,
-           "结果": "过" if n_ok >= 6 else "打回", "缺": fails}
+           "结果": "过" if n_ok >= 8 else "打回", "缺": fails}
     try:
         # ★ 2026-11-13 接哈希链(照 arXiv:2512.20985 不可篡改审计): 改走 hashchain
         sys.path.insert(0, HOME + "/tools")
@@ -399,7 +399,7 @@ def decide(what):
         pass
     # ★ 2026-11-15 接(照本体: 门票要自动发·不然门禁永远拦)
     #   判据: 六问过=发票(5分钟)·不过=不发
-    if n_ok >= 6:
+    if n_ok >= 8:
         try:
             import sqlite3 as _s6b, time as _t6b
             _c6 = _s6b.connect(HOME + "/memory/memory.db")
@@ -419,7 +419,7 @@ def decide(what):
         except Exception as _e6:
             print("⚠️ 发票失败:", str(_e6)[:60])
 
-    return 0 if n_ok >= 6 else 1
+    return 0 if n_ok >= 8 else 1
 
 
 if __name__ == "__main__":
