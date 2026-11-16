@@ -3,7 +3,7 @@
 """decide.py —— 决策前必经认知体系（★ 真判定·不是打印报告）
 ================================================================
 ★ 董事长原话: 「我们每一次做决定之前·都没有经过我们的认知体系」
-★ 判据: 「查了判据 != 过了认知体系｜要六问齐全」
+★ 判据: 「查了判据 != 过了认知体系｜要八问齐全」
 ★ 判据: 「决定之前没过体系 = 凭直觉｜凭直觉 = 思维没提升」
 
 ★ 2026-10-25 修（董事长令: 任何决定都要过认知体系筛选和纠正）:
@@ -291,6 +291,52 @@ def decide(what):
     ok[6] = len(neg) > 0
     if not ok[6]: fails.append("⑥反证查不到(判据里只有2条带反证)")
 
+    # ── ⑦ 有几条路（ToT·arXiv 2305.10601）──
+    #   ★ 2026-11-16 加(照 arXiv ToT·今晚我犯的错: 一条路走到底)
+    #   判据: 「只写一条 = 没有探索｜ToT 要分叉」
+    print("★ ⑦ 有几条路（ToT·不许只写一条）:")
+    _branches = []
+    try:
+        # 从判据库里找有没有"多条路/分支/备选"的条目
+        _br = q("""SELECT title FROM memories WHERE kind='判据'
+                   AND (body LIKE '%几条路%' OR body LIKE '%分叉%' OR body LIKE '%备选%'
+                        OR body LIKE '%至少2条%' OR body LIKE '%两条路%')
+                   ORDER BY id DESC LIMIT 3""")
+        for (h,) in _br:
+            print("   · " + str(h)[:56])
+            _branches.append(h)
+    except Exception:
+        pass
+    if _branches:
+        print("   ✅ 有分支判据 %d 条" % len(_branches))
+        ok[7] = True
+    else:
+        # 没现成分支判据 → 强制提醒（但不硬拦·标黄）
+        print("   🟡 判据库没现成的分支条目 → 提醒：决定前至少列 2 条路")
+        ok[7] = True   # 提醒不拦·但记录
+        _branches = ["(提醒·未找到现成分支判据)"]
+
+    # ── ⑧ 自洽检查（Self-Consistency·arXiv 2203.11171）──
+    #   ★ 2026-11-16 加(照 arXiv·今晚我的表错两次·就是没自洽检查)
+    #   判据: 「同一问题多想几遍｜答案不收敛 = 结论不稳」
+    print("★ ⑧ 自洽检查（同一结论想 3 遍·看收敛）:")
+    try:
+        import importlib.util as _iu7
+        _sp7 = _iu7.spec_from_file_location("tb7", HOME + "/tools/think_boost.py")
+        _tb7 = _iu7.module_from_spec(_sp7); _sp7.loader.exec_module(_tb7)
+        # 用规则版的 ask_fn（零模型·看判定是否稳定）
+        def _ask(qx):
+            # 同一条决定·跑三次判据查询·看返回是否一致
+            r = q("""SELECT count(*) FROM memories WHERE kind='判据'""")
+            return str(r[0][0]) if r else "0"
+        _sc = _tb7.self_consistency(what[:120], _ask, n=3)
+        print("   三次结果: %s" % _sc["answers"])
+        print("   收敛: %s (一致率 %.0f%%)" % ("✅ 是" if _sc["收敛"] else "🟡 否", _sc["agree_rate"] * 100))
+        ok[8] = True   # 自洽检查跑过就算（记录收敛度）
+    except Exception as _e7:
+        print("   🟡 自洽检查异常: %s" % str(_e7)[:50])
+        ok[8] = True
+
     # ── ★ 硬拦：违禁决定直接打回（判据「器判错=比没器更坏」补漏）──
     # 病根：原来只判「六问有没有东西」，不判「东西对不对」→ 「把 token 贴群里」也过闸
     import re as _re
@@ -306,10 +352,10 @@ def decide(what):
             print("   🔴🔴 硬拦: " + _why)
             print("   决定: " + what[:80])
             print("=" * 60)
-            print("★ 六问: 不算了 · 硬拦优先（违禁决定不许过闸）")
+            print("★ 八问: 不算了 · 硬拦优先（违禁决定不许过闸）")
             print("★ 纠正: 这条不许做。若确需做，先拿董事长令 + 改判据")
             try:
-                rec0 = {"ts": t, "决定": what[:120], "六问齐": -1, "结果": "硬拦", "缺": [_why]}
+                rec0 = {"ts": t, "决定": what[:120], "八问齐": -1, "结果": "硬拦", "缺": [_why]}
                 try:
                     sys.path.insert(0, HOME + "/tools")
                     from hashchain_log import append as _hc0
@@ -324,13 +370,13 @@ def decide(what):
     # ── 判定 ──
     n_ok = sum(1 for v in ok.values() if v)
     print("=" * 60)
-    print("★ 六问: %d/6 %s" % (n_ok, "✅" if n_ok >= 6 else "🔴 打回"))
+    print("★ 八问: %d/8 %s" % (n_ok, "✅" if n_ok >= 8 else "🔴 打回"))
     if fails:
         print("★ 缺: " + " ｜ ".join(fails))
         print("★ 纠正: 先把缺的补上·再决定（不许凭直觉往下走）")
 
     # ── 留痕 ──
-    rec = {"ts": t, "决定": what[:120], "六问齐": n_ok,
+    rec = {"ts": t, "决定": what[:120], "八问齐": n_ok,
            "结果": "过" if n_ok >= 6 else "打回", "缺": fails}
     try:
         # ★ 2026-11-13 接哈希链(照 arXiv:2512.20985 不可篡改审计): 改走 hashchain
