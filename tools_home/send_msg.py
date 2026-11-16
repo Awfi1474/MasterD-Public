@@ -214,9 +214,30 @@ def send(to, text, ctx=None):
         # ★ 2026-11-12 改(照董事长令"发消息一律官方字段·暂停家族字段"):
         #   官方: role(user/agent)+parts[{kind,text}]+messageId+contextId
         #   别再塞家族 from/to 到 metadata(官方无此)
+        # ★ 2026-11-16 改(照全族统一口径 v1·官方骨架+metadata放自造字段)
+        #   官方顶层: role / parts[{kind,text}] / metadata
+        #   自造: from/to/ts/address/sig 全放 metadata（官方允许）
         import uuid as _uuid
+        import datetime as _dtU
+        _tsU = _dtU.datetime.now().astimezone().isoformat(timespec="seconds")
+        _addrU = None
+        _sigU = None
+        try:
+            from eth_account import Account as _AccU
+            from eth_account.messages import encode_defunct as _edU
+            _subU = json.load(open("/opt/masterd-wudi/agent-id/subkey.json"))
+            _sigU = _AccU.sign_message(_edU(text="%s|%s|%s" % (ME, text, _tsU)),
+                                       private_key=_subU["private_key"]).signature.hex()
+            if not _sigU.startswith("0x"):
+                _sigU = "0x" + _sigU
+            _addrU = _subU.get("address")
+        except Exception:
+            pass
         _msg = {"role": "ROLE_USER", "messageId": "msg-" + _uuid.uuid4().hex[:12],
-                "parts": [{"text": text}]}
+                "parts": [{"kind": "text", "text": text}],
+                "metadata": {"from": ME, "to": to, "ts": _tsU,
+                             "address": _addrU, "sig": _sigU,
+                             "口径": "全族统一口径v1"}}
         if ctx:
             _msg["contextId"] = str(ctx)
         # ★ 2026-11-13 加官方门禁(照董事长"每次行为都按标准"·源头a2a.proto)
