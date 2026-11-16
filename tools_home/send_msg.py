@@ -412,6 +412,17 @@ if __name__ == "__main__":
             print("🔴 言行闸打回·未发送(不照着规则·就不是我): " + (_s.stdout or "")[-200:])
             _sy.exit(1)
         print("✅ 言行闸: 过")
+        # ★ 2026-11-17 加 诚实闸(照董事长"把系统挪到必经之路"):
+        #   今晚我 8 次"报好了"实际没修好|判据: 说好了!=好了|贴不出复跑命令=不算
+        try:
+            _h = _sp.run([_sy.executable, _H + "/tools/honesty_gate.py", text.strip()[:2000]],
+                         cwd=_H, capture_output=True, text=True, timeout=20)
+            if _h.returncode != 0:
+                print("🔴 诚实闸打回·未发送: " + (_h.stdout or "")[-300:])
+                _sy.exit(1)
+            print("✅ " + (_h.stdout or "诚实闸: 过").strip()[-60:])
+        except Exception as _e2:
+            print("[闸] 诚实闸异常放行(记录): " + str(_e2)[:80])
     except Exception as _e:
         pass
     # ★ 2026-11-09 焊(照老三决定门·董事长元规则): 发信前扫[重大/不可逆]红灯词 -> 警示
