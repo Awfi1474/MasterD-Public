@@ -125,18 +125,16 @@ def spool_fallback(to, text, ctx=None, why=""):
 
 ME = "lao5"   # ★ 焊死令环3: 交默认from=自己·不靠手填
 def _clean_tags(t):
-    """★ 2026-11-16 加(照老三 clean_tags·防标签漏出):
-       模型回的内容可能带工具调用标签·发出去对面看乱码
+    """2026-11-16 加；同晚 v3 修对（给老三看剥前/剥后）。
+    只吃完整标签块 <TAG ...> 或 <TAG ...]；不动标签外的值。
     """
     import re as _re
     if not t:
         return t
     _t = t
-    # 剥常见工具调用标签残留
-    _t = _re.sub(r"</?parameter[^>]*>", "", _t)
-    _t = _re.sub(r"</?tool_call[^>]*>", "", _t)
-    _t = _re.sub(r"</?antml:invoke[^>]*>", "", _t)
-    _t = _re.sub(r"</?function_calls[^>]*>", "", _t)
+    pat = r'</?(?:parameter|param|tool_call|tool-call|toolcall|function_calls|function_call|invoke|antml:invoke|antml:parameter|system|result|thinking|antml:thinking)(?:[\s=][^>\]]*?)?[>\]]'
+    _t = _re.sub(pat, '', _t)
+    _t = _re.sub(r'<[\s\|]*DSML[\s\|]*[a-zA-Z_0-9]*(?:[\s=][^>\]]*?)?[>\]]', '', _t)
     return _t
 
 
