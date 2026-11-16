@@ -124,7 +124,24 @@ def spool_fallback(to, text, ctx=None, why=""):
         return False
 
 ME = "lao5"   # ★ 焊死令环3: 交默认from=自己·不靠手填
+def _clean_tags(t):
+    """★ 2026-11-16 加(照老三 clean_tags·防标签漏出):
+       模型回的内容可能带工具调用标签·发出去对面看乱码
+    """
+    import re as _re
+    if not t:
+        return t
+    _t = t
+    # 剥常见工具调用标签残留
+    _t = _re.sub(r"</?parameter[^>]*>", "", _t)
+    _t = _re.sub(r"</?tool_call[^>]*>", "", _t)
+    _t = _re.sub(r"</?antml:invoke[^>]*>", "", _t)
+    _t = _re.sub(r"</?function_calls[^>]*>", "", _t)
+    return _t
+
+
 def send(to, text, ctx=None):
+    text = _clean_tags(text)   # ★ 2026-11-16 发前清洗(防标签漏出)
     # ★ 2026-11-15 修(照老三令 2026-11-14 00:52「只发HUB·不自投各家口」):
     #   HUB优先·并报 pushed_to_body(真推没推)·直投只做HUB失败时的兜底
     try:
