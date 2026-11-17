@@ -87,12 +87,22 @@ class H(BaseHTTPRequestHandler):
         # auth 实例: 无 Authorization 头 → 401（官方 SEC-AUTH 期望"拒绝未授权"）
         if self.KIND == 'auth':
             auth = self.headers.get('Authorization') or ''
+            # ★ 2026-11-17 修(照 ACTS runner L80-84: 两个固定token)
+            #   itk-valid-token → 200(有效) · itk-insufficient-token → 403(认证但不授权)
+            #   判据: «认证!=授权|有效200|不足403|无401»
             if not auth:
                 return self._json(401, {"jsonrpc": "2.0", "id": None,
                                         "error": {"code": -32600, "error_type": "InvalidRequestError",
                                                   "message": "Unauthorized: missing credentials",
                                                   "data": [{"@type": "type.googleapis.com/google.rpc.ErrorInfo",
                                                             "reason": "UNAUTHENTICATED",
+                                                            "domain": "a2a-protocol.org"}]}})
+            if 'itk-insufficient-token' in auth:
+                return self._json(403, {"jsonrpc": "2.0", "id": None,
+                                        "error": {"code": -32600, "error_type": "ForbiddenError",
+                                                  "message": "Forbidden: insufficient permissions",
+                                                  "data": [{"@type": "type.googleapis.com/google.rpc.ErrorInfo",
+                                                            "reason": "PERMISSION_DENIED",
                                                             "domain": "a2a-protocol.org"}]}})
         # ★ reduced 实例: 行为也要降（不能只改 card）—— streaming 该拒
         _p = self.path.split("?")[0]
@@ -141,6 +151,37 @@ class H(BaseHTTPRequestHandler):
             self._json(502, {"err": str(e)[:80]})
 
 
+
+
+# ★ 2026-11-17 加(照ACTS SEC-AUTH-002: 要带凭证但权限不足实例)
+PERM_PORT = 28433
+CARD_PERM = dict(CARD_AUTH)
+CARD_PERM["name"] = "MasterD(生命科學·老五)·perm"
+CARD_PERM["description"] = "ACTS insufficient-permission instance"
+CARD_PERM["supportedInterfaces"] = [{"url": "http://127.0.0.1:28433/a2a-jsonrpc",
+                                       "protocolBinding": "JSONRPC", "protocolVersion": "1.0"}]
+
+
+class HPerm(H):
+    KIND = 'perm'
+
+    def _card(self):
+        return CARD_PERM
+
+    def do_POST(self):
+        # 带凭证 → 403(权限不足)· 无凭证 → 401
+        auth = self.headers.get('Authorization') or ''
+        if not auth:
+            return self._json(401, {"jsonrpc": "2.0", "id": None,
+                "error": {"code": -32600, "error_type": "InvalidRequestError",
+                           "message": "Unauthorized: missing credentials"}})
+        return self._json(403, {"jsonrpc": "2.0", "id": None,
+            "error": {"code": -32600, "error_type": "ForbiddenError",
+                       "message": "Forbidden: insufficient permissions",
+                       "data": [{"@type": "type.googleapis.com/google.rpc.ErrorInfo",
+                                   "reason": "PERMISSION_DENIED", "domain": "a2a-protocol.org"}]}})
+
+
 class HRed(H):
     KIND = 'reduced'
 
@@ -159,4 +200,5 @@ def serve(port, cls):
 
 if __name__ == '__main__':
     threading.Thread(target=serve, args=(REDUCED_PORT, HRed), daemon=True).start()
+    threading.Thread(target=serve, args=(PERM_PORT, HPerm), daemon=True).start()
     serve(AUTH_PORT, HAuth)
