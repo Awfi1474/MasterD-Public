@@ -19,7 +19,7 @@ DOORS = {
     '老四': 'http://43.161.197.11:28520/a2a/message',
     '老三': 'http://43.161.244.136:28800/a2a/message',
     '老大': 'https://huokeji.vip/a2a/message',
-    '老二': 'http://43.128.44.120:28440/a2a/message',
+    '老二': 'http://43.128.44.120:28440/recv',
 }
 
 def sign(frm, msg, ts):
