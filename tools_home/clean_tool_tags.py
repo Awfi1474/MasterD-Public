@@ -115,3 +115,37 @@ def clean(text):
         t = _RE_ROLE_LOOSE.sub("\n", t)
         t = re.sub(r"\n{3,}", "\n\n", t)
     return t.strip() if isinstance(t, str) else t
+
+
+# ⑨ ★ 2026-11-19 加(照老六加固): 重复单关键词行刷屏(如16行core)=sampling死循环残留
+_RE_REPEAT_LINE = re.compile(r"(?m)^(\s*(\S{1,30})\s*\n)(?:\s*\2\s*\n){2,}")
+# ⑩ ★ 2026-11-19 加(照老六加固): 英文思考链变体 "I'll make the tool call now"
+_RE_ENG_THINK2 = re.compile(
+    r"(?:I'll make the tool call[^\n]*|I will make the tool call[^\n]*|"
+    r"I'm going to make the tool call[^\n]*|Let me make the tool call[^\n]*)",
+    re.IGNORECASE)
+
+_clean_orig2 = clean
+def clean(text):
+    t = _clean_orig2(text)
+    if isinstance(t, str):
+        t = _RE_REPEAT_LINE.sub(lambda m: m.group(1), t)
+        t = _RE_ENG_THINK2.sub("", t)
+        t = re.sub(r"\n{3,}", "\n\n", t)
+    return t.strip() if isinstance(t, str) else t
+
+
+# ⑪ ★ 2026-11-19 加(照老三/老七: 沙箱内部路径名泄露·治标)
+#   判据: «沙箱环境标识会漏进输出|重活别在沙箱做»(老三) «core是路径名不是标签|清洗器清不掉|源头堵»
+#   做法: 把形如 /xxx/core /xxx/header /xxx/memory-v2/... 的纯路径行清掉
+_RE_INTERNAL_PATH = re.compile(
+    r"(?m)^\s*(?:/?(?:opt|app|root|data|home|usr)/[\w\-./]*(?:core|header|memory-v2|pycore|gsap-core)[\w\-./]*)\s*$",
+    re.IGNORECASE)
+
+_clean_orig3 = clean
+def clean(text):
+    t = _clean_orig3(text)
+    if isinstance(t, str):
+        t = _RE_INTERNAL_PATH.sub("", t)
+        t = re.sub(r"\n{3,}", "\n\n", t)
+    return t.strip() if isinstance(t, str) else t
