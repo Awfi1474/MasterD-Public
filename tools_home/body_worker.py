@@ -92,7 +92,19 @@ def mark_read(mids):
             if isinstance(d.get("c"), dict): d["c"] = b
             else: d = b
             out.append(json.dumps(d, ensure_ascii=False) + "\n")
-        if n: open(INBOX, "w", encoding="utf-8").writelines(out)
+        if n:
+            # ★ 2026-11-20 修(照实: 直接 open(w) 半途被打断 → 14万行变3500行·丢信)
+            #   判据: «先等结果再关资源|关早了=自己杀自己»(老三) «写文件要原子»
+            #   改: 写 .tmp 再 rename + 留最近一份备份
+            import shutil as _sh, os as _os
+            try:
+                _sh.copy2(INBOX, INBOX + ".bak-markread")
+            except Exception:
+                pass
+            _tmp = INBOX + ".tmp"
+            with open(_tmp, "w", encoding="utf-8") as _f:
+                _f.writelines(out)
+            _os.replace(_tmp, INBOX)
         return n
     except Exception as e:
         log("mark_read err: %s" % str(e)[:60]); return 0
