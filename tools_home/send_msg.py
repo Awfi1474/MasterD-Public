@@ -135,6 +135,17 @@ def _clean_tags(t):
     pat = r'</?(?:parameter|param|tool_call|tool-call|toolcall|function_calls|function_call|invoke|antml:invoke|antml:parameter|system|result|thinking|antml:thinking)(?:[\s=][^>\]]*?)?[>\]]'
     _t = _re.sub(pat, '', _t)
     _t = _re.sub(r'<[\s\|]*DSML[\s\|]*[a-zA-Z_0-9]*(?:[\s=][^>\]]*?)?[>\]]', '', _t)
+    # ★ 2026-11-19 加(照老七 clean_tool_tags · 治"APP显示英文"):
+    #   我的正则漏4类: ROLE_USER漏出/role字段/英文思考链/tool_code块
+    #   判据: «清洗要清干净|漏一种=对面看乱码» «标签是模型层脏东西»
+    try:
+        import sys as _s7, os as _o7
+        _s7.path.insert(0, "/opt/masterd-wudi/tools")
+        import clean_tool_tags as _ct7
+        _t = _ct7.clean(_t)
+    except Exception:
+        # 兜底: 就地清最要命的「ROLE_USER / role 字段」整行
+        _t = _re.sub(r'(?m)^\s*(?:ROLE_USER|ROLE_ASSISTANT|ROLE_AGENT|role\s*[:=]\s*\w+)\s*$', '', _t)
     return _t
 
 
